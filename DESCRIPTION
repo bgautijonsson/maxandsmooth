@@ -1,0 +1,11 @@
+Package: maxandsmooth
+Type: Package
+Title: Fast approximate Bayesian inference for latent Gaussian models
+Version: 0.0.1
+Date: 2024-08-26
+Author: Brynjolfur Gauti Guðrúnar Jónsson
+Maintainer: Your Name <brynjolfur@hi.com>
+Description: This package provides fast approximate Bayesian inference for latent Gaussian models using the Max-and-Smooth algorithm.
+License: GPL (>= 2)
+Imports: Rcpp, RcppEigen
+LinkingTo: Rcpp, RcppEigen

@@ -1,0 +1,2 @@
+PKG_CXXFLAGS = $(shell pkg-config --cflags fftw3)
+PKG_LIBS = $(shell pkg-config --libs fftw3)
