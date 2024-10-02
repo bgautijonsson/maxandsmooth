@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "*.rmd": "markdown",
+    "array": "cpp",
+    "string": "cpp",
+    "string_view": "cpp",
+    "vector": "cpp",
+    "ios": "cpp"
+  }
+}
