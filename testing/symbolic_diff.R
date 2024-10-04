@@ -72,19 +72,6 @@ grad_mu_xi <- function(x, mu, sigma, xi) {
 
 # Sigma Hessian
 
-# Hessian with respect to sigma, mu
-Deriv(grad_sigma, c("mu"))
-grad_sigma_mu <- function(x, mu, sigma, xi) {
-  .e1 <- x - mu
-  .e2 <- 1 + xi * .e1 / sigma
-  .e3 <- 1 / xi
-  .e4 <- 1 + .e3
-  .e6 <- 1 / .e2^.e3
-  .e7 <- sigma * .e2
-  .e8 <- xi * .e4
-  ((.e6 - (.e1 / (sigma * .e2^.e4) + .e8)) / .e7 - xi * (.e6 - .e8) * .e1 / .e7^2) / sigma
-}
-
 # Hessian with respect to sigma, sigma
 Deriv(grad_sigma, c("sigma"))
 grad_sigma_sigma <- function(x, mu, sigma, xi) {
@@ -128,36 +115,4 @@ grad_xi_xi <- function(x, mu, sigma, xi) {
       .e4^(2 / xi))) / xi + sigma * (.e6 * .e9 * .e1 / sigma -
     .e8 * .e7 / .e12) * .e1 / .e11^2) / xi - (.e6 * .e1 / .e10^2 +
     1 / (sigma * .e12 * .e4)) * .e1)
-}
-
-# Hessian with respect to xi, mu
-Deriv(grad_xi, c("mu"))
-grad_xi_mu <- function(x, mu, sigma, xi) {
-  .e1 <- x - mu
-  .e2 <- xi * .e1
-  .e3 <- .e2 / sigma
-  .e4 <- 1 + .e3
-  .e5 <- 1 / xi
-  .e6 <- 1 + .e5
-  .e7 <- .e4^.e6
-  .e8 <- .e4^.e5
-  .e9 <- sigma * .e4
-  -((1 / .e7 - xi * (((1 - log1p(.e3) / xi) / .e8 - 1) / (xi * .e4) +
-    sigma * .e6 * .e8 * .e1 / (sigma * .e7)^2)) / (sigma * xi) -
-    .e6 * (1 / .e9 - .e2 / .e9^2))
-}
-
-# Hessian with respect to xi, sigma
-Deriv(grad_xi, c("sigma"))
-grad_xi_sigma <- function(x, mu, sigma, xi) {
-  .e1 <- x - mu
-  .e3 <- xi * .e1 / sigma
-  .e4 <- 1 + .e3
-  .e5 <- 1 / xi
-  .e6 <- 1 + .e5
-  .e7 <- .e4^.e6
-  .e8 <- .e4^.e5
-  -((((.e7 - xi * .e6 * .e8 * .e1 / sigma) / (sigma * .e7)^2 -
-    ((1 - log1p(.e3) / xi) / .e8 - 1) / (sigma^2 * .e4)) / xi - .e6 / (sigma *
-    .e4)^2) * .e1)
 }
