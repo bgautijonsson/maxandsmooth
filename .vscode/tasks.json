@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "tasks": [
+      {
+          "label": "Compile and Install R Package",
+          "type": "shell",
+          "command": "Rscript",
+          "args": [
+              "-e",
+              "Rcpp::compileAttributes(); devtools::install()"
+          ],
+          "group": {
+              "kind": "build",
+              "isDefault": true
+          },
+          "presentation": {
+              "reveal": "always",
+              "panel": "new"
+          },
+          "problemMatcher": []
+      }
+  ]
+}

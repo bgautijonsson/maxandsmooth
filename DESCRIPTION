@@ -7,5 +7,7 @@ Author: Brynjolfur Gauti Gudrunar Jonsson
 Maintainer: Brynjolfur Gauti Gudrunar Jonsson <brynjolfur@hi.is>
 Description: This package provides fast approximate Bayesian inference for latent Gaussian models using the Max-and-Smooth algorithm.
 License: GPL (>= 2)
-Imports: Rcpp, RcppEigen, BH
-LinkingTo: Rcpp, RcppEigen, BH
+Imports: Rcpp, RcppEigen, BH, StanHeaders, RcppParallel
+LinkingTo: Rcpp, RcppEigen, BH, StanHeaders, RcppParallel
+RoxygenNote: 7.3.2
+SystemRequirements: autodiff, fftw3

@@ -11,46 +11,60 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// gev_mle
-Eigen::Vector3d gev_mle(const Eigen::VectorXd& data);
-RcppExport SEXP _maxandsmooth_gev_mle(SEXP dataSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type data(dataSEXP);
-    rcpp_result_gen = Rcpp::wrap(gev_mle(data));
-    return rcpp_result_gen;
-END_RCPP
-}
-// gev_mle_matrix
-Eigen::MatrixXd gev_mle_matrix(const Eigen::MatrixXd& data);
-RcppExport SEXP _maxandsmooth_gev_mle_matrix(SEXP dataSEXP) {
+// max_cpp
+Rcpp::List max_cpp(const Eigen::MatrixXd& data, const std::string& family);
+RcppExport SEXP _maxandsmooth_max_cpp(SEXP dataSEXP, SEXP familySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type data(dataSEXP);
-    rcpp_result_gen = Rcpp::wrap(gev_mle_matrix(data));
+    Rcpp::traits::input_parameter< const std::string& >::type family(familySEXP);
+    rcpp_result_gen = Rcpp::wrap(max_cpp(data, family));
     return rcpp_result_gen;
 END_RCPP
 }
-// smooth_samples
-Eigen::MatrixXd smooth_samples(const Eigen::MatrixXd& estimates, const std::vector<Eigen::MatrixXd>& precision_matrices, const Rcpp::List& params);
-RcppExport SEXP _maxandsmooth_smooth_samples(SEXP estimatesSEXP, SEXP precision_matricesSEXP, SEXP paramsSEXP) {
+// prepare_mle_data
+Rcpp::List prepare_mle_data(const Eigen::MatrixXd& estimates, const Rcpp::List& hessians);
+RcppExport SEXP _maxandsmooth_prepare_mle_data(SEXP estimatesSEXP, SEXP hessiansSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type estimates(estimatesSEXP);
-    Rcpp::traits::input_parameter< const std::vector<Eigen::MatrixXd>& >::type precision_matrices(precision_matricesSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type params(paramsSEXP);
-    rcpp_result_gen = Rcpp::wrap(smooth_samples(estimates, precision_matrices, params));
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type hessians(hessiansSEXP);
+    rcpp_result_gen = Rcpp::wrap(prepare_mle_data(estimates, hessians));
+    return rcpp_result_gen;
+END_RCPP
+}
+// create_q_icar
+Eigen::SparseMatrix<double> create_q_icar(int n_stations);
+RcppExport SEXP _maxandsmooth_create_q_icar(SEXP n_stationsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n_stations(n_stationsSEXP);
+    rcpp_result_gen = Rcpp::wrap(create_q_icar(n_stations));
+    return rcpp_result_gen;
+END_RCPP
+}
+// maxandsmooth_cpp
+Eigen::MatrixXd maxandsmooth_cpp(const Eigen::MatrixXd& data, const std::string& family, int n_iterations);
+RcppExport SEXP _maxandsmooth_maxandsmooth_cpp(SEXP dataSEXP, SEXP familySEXP, SEXP n_iterationsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type family(familySEXP);
+    Rcpp::traits::input_parameter< int >::type n_iterations(n_iterationsSEXP);
+    rcpp_result_gen = Rcpp::wrap(maxandsmooth_cpp(data, family, n_iterations));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_maxandsmooth_gev_mle", (DL_FUNC) &_maxandsmooth_gev_mle, 1},
-    {"_maxandsmooth_gev_mle_matrix", (DL_FUNC) &_maxandsmooth_gev_mle_matrix, 1},
-    {"_maxandsmooth_smooth_samples", (DL_FUNC) &_maxandsmooth_smooth_samples, 3},
+    {"_maxandsmooth_max_cpp", (DL_FUNC) &_maxandsmooth_max_cpp, 2},
+    {"_maxandsmooth_prepare_mle_data", (DL_FUNC) &_maxandsmooth_prepare_mle_data, 2},
+    {"_maxandsmooth_create_q_icar", (DL_FUNC) &_maxandsmooth_create_q_icar, 1},
+    {"_maxandsmooth_maxandsmooth_cpp", (DL_FUNC) &_maxandsmooth_maxandsmooth_cpp, 3},
     {NULL, NULL, 0}
 };
 
