@@ -132,21 +132,29 @@ window.Quarto = {
   <li><a href="#algorithm-description" id="toc-algorithm-description" class="nav-link" data-scroll-target="#algorithm-description">Algorithm Description</a></li>
   <li><a href="#code-structure" id="toc-code-structure" class="nav-link" data-scroll-target="#code-structure">Code Structure</a></li>
   </ul></li>
-  <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
-  <ul class="collapse">
   <li><a href="#max-step" id="toc-max-step" class="nav-link" data-scroll-target="#max-step">Max Step</a>
   <ul class="collapse">
   <li><a href="#data-structure" id="toc-data-structure" class="nav-link" data-scroll-target="#data-structure">Data Structure</a></li>
-  <li><a href="#maximum-likelihood-estimation" id="toc-maximum-likelihood-estimation" class="nav-link" data-scroll-target="#maximum-likelihood-estimation">Maximum Likelihood Estimation</a></li>
+  <li><a href="#maximum-likelihood-estimation" id="toc-maximum-likelihood-estimation" class="nav-link" data-scroll-target="#maximum-likelihood-estimation">Maximum Likelihood Estimation</a>
+  <ul class="collapse">
+  <li><a href="#link-functions" id="toc-link-functions" class="nav-link" data-scroll-target="#link-functions">Link Functions</a></li>
+  </ul></li>
   <li><a href="#implementation" id="toc-implementation" class="nav-link" data-scroll-target="#implementation">Implementation</a></li>
   </ul></li>
   <li><a href="#smooth-step" id="toc-smooth-step" class="nav-link" data-scroll-target="#smooth-step">Smooth Step</a>
   <ul class="collapse">
-  <li><a href="#model-structure" id="toc-model-structure" class="nav-link" data-scroll-target="#model-structure">Model Structure</a></li>
-  <li><a href="#posterior-distribution" id="toc-posterior-distribution" class="nav-link" data-scroll-target="#posterior-distribution">Posterior Distribution</a></li>
-  <li><a href="#mcmc-sampling" id="toc-mcmc-sampling" class="nav-link" data-scroll-target="#mcmc-sampling">MCMC Sampling</a></li>
+  <li><a href="#model-structure" id="toc-model-structure" class="nav-link" data-scroll-target="#model-structure">Model Structure</a>
+  <ul class="collapse">
+  <li><a href="#data-level" id="toc-data-level" class="nav-link" data-scroll-target="#data-level">Data Level</a></li>
+  <li><a href="#latent-level" id="toc-latent-level" class="nav-link" data-scroll-target="#latent-level">Latent Level</a></li>
+  <li><a href="#hyperparameter-level" id="toc-hyperparameter-level" class="nav-link" data-scroll-target="#hyperparameter-level">Hyperparameter Level</a></li>
+  </ul></li>
+  <li><a href="#mcmc-sampling" id="toc-mcmc-sampling" class="nav-link" data-scroll-target="#mcmc-sampling">MCMC Sampling</a>
+  <ul class="collapse">
+  <li><a href="#latent-field-sampling" id="toc-latent-field-sampling" class="nav-link" data-scroll-target="#latent-field-sampling">Latent Field Sampling</a></li>
   </ul></li>
   </ul></li>
+  
   </ul>
 </nav>
 </div>
@@ -193,21 +201,19 @@ window.Quarto = {
 </ol>
 </section>
 </section>
-<section id="methods" class="level1">
-<h1>Methods</h1>
-<section id="max-step" class="level2">
-<h2 class="anchored" data-anchor-id="max-step">Max Step</h2>
+<section id="max-step" class="level1">
+<h1>Max Step</h1>
 <p>The Max step involves computing location-wise maximum likelihood estimates (MLEs) for the GEV model parameters. This step is performed independently for each location, treating the data as if it were independent across locations.</p>
-<section id="data-structure" class="level3">
-<h3 class="anchored" data-anchor-id="data-structure">Data Structure</h3>
+<section id="data-structure" class="level2">
+<h2 class="anchored" data-anchor-id="data-structure">Data Structure</h2>
 <p>The input data Y, calculated from the UKCP, is structured as a matrix, where:</p>
 <ul>
 <li>Rows represent observations of hourly maximum rainfall in yearly blocks</li>
 <li>Columns represent different spatial locations over Great Britain.</li>
 </ul>
 </section>
-<section id="maximum-likelihood-estimation" class="level3">
-<h3 class="anchored" data-anchor-id="maximum-likelihood-estimation">Maximum Likelihood Estimation</h3>
+<section id="maximum-likelihood-estimation" class="level2">
+<h2 class="anchored" data-anchor-id="maximum-likelihood-estimation">Maximum Likelihood Estimation</h2>
 <p>For each location (column in Y), we compute the MLEs for the three GEV parameters: location <span class="math inline">\((\mu)\)</span>, scale <span class="math inline">\((\sigma)\)</span>, and shape <span class="math inline">\((\xi)\)</span>. The log-likelihood function for the GEV distribution at a single location is:</p>
 <p><span class="math display">\[
 \ell(\mu, \sigma, \xi | y) = -n\log\sigma - (1+\frac{1}{\xi})\sum_{i=1}^n \log\left(1+\xi\frac{y_i-\mu}{\sigma}\right) - \sum_{i=1}^n \left(1+\xi\frac{y_i-\mu}{\sigma}\right)^{-1/\xi}
@@ -218,16 +224,16 @@ window.Quarto = {
 (\hat{\mu}_i, \hat{\sigma}_i, \hat{\xi}_i) = \arg\max_{(\mu, \sigma, \xi)} \ell(\mu, \sigma, \xi | Y_i)
 \]</span></p>
 <p>where <span class="math inline">\(Y_i\)</span> is the data for location <span class="math inline">\(i\)</span>.</p>
-<section id="link-functions" class="level4">
-<h4 class="anchored" data-anchor-id="link-functions">Link Functions</h4>
+<section id="link-functions" class="level3">
+<h3 class="anchored" data-anchor-id="link-functions">Link Functions</h3>
 <p>Instead of directly maximizing the likelihood with the original parameters, we transform the parameters using a link function</p>
 <p><span class="math display">\[
 \left(\psi, \tau, \phi\right) = h(\mu, \sigma, \xi) = \left(\log(\mu), \log(\sigma) - \log(\mu), \text{logit}(\xi)\right)
 \]</span></p>
 </section>
 </section>
-<section id="implementation" class="level3">
-<h3 class="anchored" data-anchor-id="implementation">Implementation</h3>
+<section id="implementation" class="level2">
+<h2 class="anchored" data-anchor-id="implementation">Implementation</h2>
 <p>The maximization is performed using numerical optimization techniques. In our C++ implementation, we use the following approach:</p>
 <ol type="1">
 <li>Parameters are transformed with a link function</li>
@@ -268,11 +274,11 @@ Q_{\psi\phi} &amp;= \text{diag}\left(\tau^{\psi\phi}_1, \dots, \tau^{\psi\phi}_n
 <p>This structure reflects the independence assumption between stations in the Max step, while capturing the parameter dependencies within each station. The outputs, <span class="math inline">\(\hat \eta\)</span> and <span class="math inline">\(Q_{\eta y}\)</span>, serve as inputs into the Smooth step.</p>
 </section>
 </section>
-<section id="smooth-step" class="level2">
-<h2 class="anchored" data-anchor-id="smooth-step">Smooth Step</h2>
+<section id="smooth-step" class="level1">
+<h1>Smooth Step</h1>
 <p>The Smooth step involves Bayesian inference on a latent Gaussian field, using the maximum likelihood estimates from the Max step as data.</p>
-<section id="model-structure" class="level3">
-<h3 class="anchored" data-anchor-id="model-structure">Model Structure</h3>
+<section id="model-structure" class="level2">
+<h2 class="anchored" data-anchor-id="model-structure">Model Structure</h2>
 <p>Let <span class="math inline">\(\eta\)</span> be the latent field of parameters, and <span class="math inline">\(\hat{\eta}\)</span> be the maximum likelihood estimates from the Max step. The model is structured as follows:</p>
 <ol type="1">
 <li>Data level: <span class="math inline">\(\hat{\eta} | \eta \sim N(\eta, Q_{\eta y}^{-1})\)</span></li>
@@ -280,14 +286,14 @@ Q_{\psi\phi} &amp;= \text{diag}\left(\tau^{\psi\phi}_1, \dots, \tau^{\psi\phi}_n
 <li>Hyperparameter level: <span class="math inline">\(\tau_\eta \sim \pi(\tau_\eta)\)</span></li>
 </ol>
 <p>where <span class="math inline">\(Q_{\eta y}\)</span> is the precision matrix from the Max step, and <span class="math inline">\(Q_\eta\)</span> is the precision matrix of the latent field, parameterized by hyperparameters <span class="math inline">\(\tau_\eta\)</span>.</p>
-<section id="data-level" class="level4">
-<h4 class="anchored" data-anchor-id="data-level">Data Level</h4>
+<section id="data-level" class="level3">
+<h3 class="anchored" data-anchor-id="data-level">Data Level</h3>
 <p>The data level models the relationship between the observed maximum likelihood estimates <span class="math inline">\(\hat{\eta}\)</span> and the true latent field <span class="math inline">\(\eta\)</span>:</p>
 <p><span class="math display">\[\hat{\eta} | \eta \sim N(\eta, Q_{\eta y}^{-1})\]</span></p>
 <p>Here, <span class="math inline">\(Q_{\eta y}\)</span> is the precision matrix obtained from the Max step, representing the uncertainty in the MLE estimates. This can be thought of as using the outputs of the Max step as sufficient statistics for the observed data.</p>
 </section>
-<section id="latent-level" class="level4">
-<h4 class="anchored" data-anchor-id="latent-level">Latent Level</h4>
+<section id="latent-level" class="level3">
+<h3 class="anchored" data-anchor-id="latent-level">Latent Level</h3>
 <p>The latent level models the spatial structure of the parameter field: <span class="math display">\[
 \eta | \tau_\eta \sim N(0, Q_\eta^{-1})
 \]</span></p>
@@ -313,28 +319,21 @@ Q_{\text{prior}} = \begin{bmatrix}
 \]</span></p>
 <p>and <span class="math inline">\(\tau_\eta = \left(\tau_\psi, \tau_\tau, \tau_\phi\right)^T\)</span> are the hyperparameters controlling the strength of spatial dependence for each parameter.</p>
 </section>
-<section id="hyperparameter-level" class="level4">
-<h4 class="anchored" data-anchor-id="hyperparameter-level">Hyperparameter Level</h4>
+<section id="hyperparameter-level" class="level3">
+<h3 class="anchored" data-anchor-id="hyperparameter-level">Hyperparameter Level</h3>
 <p>The hyperparameters <span class="math inline">\(\tau_\eta\)</span> are assigned prior distributions.</p>
 </section>
 </section>
-<section id="posterior-distribution" class="level3">
-<h3 class="anchored" data-anchor-id="posterior-distribution">Posterior Distribution</h3>
-<p>The posterior distribution of interest is:</p>
-<p><span class="math display">\[
-p(\eta, \tau | \hat{\eta}) \propto p(\hat{\eta} | \eta) p(\eta | \tau_\eta) p(\tau_\eta)
-\]</span></p>
-</section>
-<section id="mcmc-sampling" class="level3">
-<h3 class="anchored" data-anchor-id="mcmc-sampling">MCMC Sampling</h3>
+<section id="mcmc-sampling" class="level2">
+<h2 class="anchored" data-anchor-id="mcmc-sampling">MCMC Sampling</h2>
 <p>The Smooth step uses Metropolis-Hastings MCMC to sample from this posterior. The algorithm alternates between:</p>
 <ol type="1">
 <li>Proposing new hyperparameters <span class="math inline">\(\tau_\eta^*\)</span></li>
 <li>Sampling a new latent field <span class="math inline">\(\eta^*\)</span> conditional on <span class="math inline">\(\tau_\eta^*\)</span></li>
 <li>Accepting or rejecting the proposal based on the Metropolis-Hastings ratio</li>
 </ol>
-<section id="latent-field-sampling" class="level4">
-<h4 class="anchored" data-anchor-id="latent-field-sampling">Latent Field Sampling</h4>
+<section id="latent-field-sampling" class="level3">
+<h3 class="anchored" data-anchor-id="latent-field-sampling">Latent Field Sampling</h3>
 <p>The latent field is sampled from the conditional normal distribution</p>
 <p><span class="math display">\[
 \eta \vert \hat\eta, \tau_\eta \sim \mathrm{N}(\mu_{\text{post}}, Q_{\text{post}}),
@@ -363,8 +362,19 @@ Q_{\text{post}} = L_{\text{post}}L_{\text{post}}^T,
 <p><span class="math display">\[
 L_{\text{post}}L_{\text{post}}^T \mu_\text{post} = \hat b_{\eta y}.
 \]</span></p>
-<section id="cholesky-decomposition-of-q_textpost" class="level5">
-<h5 class="anchored" data-anchor-id="cholesky-decomposition-of-q_textpost">Cholesky Decomposition of <span class="math inline">\(Q_\text{post}\)</span></h5>
+<p>After that, we sample from the latent field by generating a standard normal random vector <span class="math inline">\(z \sim \mathrm N(0, I)\)</span> and using forward substitution to calculate:</p>
+<p><span class="math display">\[
+\eta^* = \mu_\text{post} + L_\text{post}^{-1}z
+\]</span></p>
+</section>
+</section>
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="appendix" class="level1 appendix"><h2 class="anchored quarto-appendix-heading">Appendix</h2><div class="quarto-appendix-contents">
+
+<section id="computing-l_textpost" class="level2">
+<h2 class="anchored" data-anchor-id="computing-l_textpost">Computing <span class="math inline">\(L_\text{post}\)</span></h2>
 <p>We first write out <span class="math inline">\(Q_\text{post}\)</span> as</p>
 <p><span class="math display">\[
 Q_\text{post} = \begin{bmatrix}
@@ -373,7 +383,7 @@ Q_{\tau\psi} &amp; Q_{\tau\tau} + \tau_\tau Q_\text{prior} &amp; Q_{\tau\phi} \\
 Q_{\phi\psi} &amp; Q_{\phi\tau} &amp; Q_{\phi\phi} + \tau_\phi Q_\text{prior},
 \end{bmatrix}
 \]</span></p>
-<p>where each block on the diagonal has bandwidth 3 and all the off-diagonal blocks are diagonal matrices. Keep in mind that since the off-diagonal blocks are diagonal matrices we have that <span class="math inline">\(Q_{\psi\tau} = Q_{\tau\psi}\)</span>, <span class="math inline">\(Q_{\psi\phi} = Q_{\phi\psi}\)</span> and <span class="math inline">\(Q_{\tau\phi} = Q_{\phi\tau}\)</span>.We can thus calculate the Cholesky decomposition</p>
+<p>where each block on the diagonal has bandwidth 3 and all the off-diagonal blocks are diagonal matrices. Keep in mind that since the off-diagonal blocks are diagonal matrices we have that <span class="math inline">\(Q_{\psi\tau} = Q_{\tau\psi}\)</span>, <span class="math inline">\(Q_{\psi\phi} = Q_{\phi\psi}\)</span> and <span class="math inline">\(Q_{\tau\phi} = Q_{\phi\tau}\)</span>. We can thus calculate the Cholesky decomposition</p>
 <p><span class="math display">\[
 L_\text{post} = \begin{bmatrix}
 L_{11} &amp; 0 &amp; 0 \\
@@ -390,19 +400,186 @@ L_{31} &amp; L_{32} &amp; L_{33},
 <ul>
 <li><span class="math inline">\(S_{22} = \left(Q_{\tau\tau} + \tau_\tau Q_\text{prior}\right) - L_{21}L_{21}^T\)</span></li>
 </ul></li>
-<li><span class="math inline">\(L_{32} = \left(Q_{\phi\tau} - L_{31}L_{21}^T\right)L_{22}^{-T}\)</span></li>
+<li><span class="math inline">\(L_{32} = \left(Q_{\tau\phi} - L_{31}L_{21}^T\right)L_{22}^{-T}\)</span></li>
 <li><span class="math inline">\(L_{33} = \mathrm{Chol}(S_{33})\)</span>
 <ul>
 <li><span class="math inline">\(S_{33} = \left( Q_{\phi\phi} + \tau_\phi Q_\text{prior} \right) - L_{31}L_{31}^T - L_{32}L_{32}^T\)</span></li>
 </ul></li>
 </ol>
 </section>
+<section id="forward-substitution-solving-ly-b" class="level2">
+<h2 class="anchored" data-anchor-id="forward-substitution-solving-ly-b">Forward Substitution: Solving <span class="math inline">\(Ly = b\)</span></h2>
+<p>Partition <span class="math inline">\(L\)</span>, <span class="math inline">\(y\)</span> and <span class="math inline">\(b\)</span> conformably:</p>
+<p><span class="math display">\[
+L_\text{post} = \begin{bmatrix}
+L_{11} &amp; 0 &amp; 0 \\
+L_{21} &amp; L_{22} &amp; 0 \\
+L_{31} &amp; L_{32} &amp; L_{33},
+\end{bmatrix} \qquad
+y = \begin{bmatrix}
+y_1 \\
+y_2 \\
+y_3
+\end{bmatrix} \qquad
+b = \begin{bmatrix}
+b_1 \\
+b_2 \\
+b_3
+\end{bmatrix}.
+\]</span></p>
+<section id="first-block-row" class="level3">
+<h3 class="anchored" data-anchor-id="first-block-row"><strong>First Block Row</strong></h3>
+<p><span class="math display">\[
+L_{11} y_1 = b_1
+\]</span></p>
+<p>Solve for <span class="math inline">\(y_1\)</span>:</p>
+<p><span class="math display">\[
+y_1 = L_{11}^{-1}b_1
+\]</span></p>
+</section>
+<section id="second-block-row" class="level3">
+<h3 class="anchored" data-anchor-id="second-block-row"><strong>Second Block Row</strong></h3>
+<p><span class="math display">\[
+L_{21}y_1 + L_{22}y_2 = b_2
+\]</span></p>
+<p>Rearranged:</p>
+<p><span class="math display">\[
+L_{22}y_2 = b_2 - L_{21}y_1
+\]</span></p>
+<p>Solve for <span class="math inline">\(y_2\)</span>:</p>
+<p><span class="math display">\[
+y_2 = L_{22}^{-1}\left(b_2 - L_{21}y_1\right)
+\]</span></p>
+</section>
+<section id="third-block-row" class="level3">
+<h3 class="anchored" data-anchor-id="third-block-row"><strong>Third Block Row</strong></h3>
+<p><span class="math display">\[
+L_{31}y_1 + L_{32}y_2 + L_{33}y_3 = b_3
+\]</span></p>
+<p>Rearranged:</p>
+<p><span class="math display">\[
+L_{33}y_3 = b_3 - L_{31}y_1 - L_{32}y_2
+\]</span></p>
+<p>Solve for <span class="math inline">\(y_3\)</span>:</p>
+<p><span class="math display">\[
+y_3 = L_{33}^{-1}\left(b_3 - L_{31}y_1 - L_{32}y_2\right)
+\]</span></p>
+</section>
+<section id="combined-solution" class="level3">
+<h3 class="anchored" data-anchor-id="combined-solution"><strong>Combined Solution</strong></h3>
+<p><span class="math display">\[
+y = \begin{bmatrix}
+y_1 \\
+y_2 \\
+y_3
+\end{bmatrix} =
+\begin{bmatrix}
+L_{11}^{-1}b_1 \\
+L_{22}^{-1}\left(b_2 - L_{21}y_1\right) \\
+L_{33}^{-1}\left(b_3 - L_{31}y_1 - L_{32}y_2\right)
+\end{bmatrix}
+\]</span></p>
 </section>
 </section>
+<section id="backward-substitution-solving-ltx-y" class="level2">
+<h2 class="anchored" data-anchor-id="backward-substitution-solving-ltx-y">Backward Substitution: Solving <span class="math inline">\(L^Tx = y\)</span></h2>
+<p>Partition <span class="math inline">\(L^T\)</span> and <span class="math inline">\(x\)</span> like <span class="math inline">\(y\)</span>:</p>
+<p><span class="math display">\[
+L^T = \begin{bmatrix}
+L_{11}^T &amp; L_{21}^T &amp; L_{31}^T \\
+0 &amp; L_{22}^T &amp; L_{32}^T \\
+0 &amp; 0 &amp; L_{33}^T
+\end{bmatrix}, \quad
+x = \begin{bmatrix}
+x_1 \\
+x_2 \\
+x_3
+\end{bmatrix}
+\]</span></p>
+<section id="third-block-row-1" class="level3">
+<h3 class="anchored" data-anchor-id="third-block-row-1"><strong>Third Block Row</strong></h3>
+<p><span class="math display">\[
+L_{33}^Tx_3 = y_3
+\]</span></p>
+<p>Solve for <span class="math inline">\(x_3\)</span></p>
+<p><span class="math display">\[
+x_3 = L_{33}^{-T}y_3
+\]</span></p>
+</section>
+<section id="second-block-row-1" class="level3">
+<h3 class="anchored" data-anchor-id="second-block-row-1"><strong>Second Block Row</strong></h3>
+<p><span class="math display">\[
+L_{22}^Tx_2 + L_{32}^Tx_3 = y_2
+\]</span></p>
+<p>Rearranged:</p>
+<p><span class="math display">\[
+L_{22}^Tx_2 = y_2 - L_{32}^Tx_3
+\]</span></p>
+<p>Solve for <span class="math inline">\(x_2\)</span></p>
+<p><span class="math display">\[
+x_2 = L_{22}^{-T}\left(y_2 - L_{32}^Tx_3\right)
+\]</span></p>
+</section>
+<section id="first-block-row-1" class="level3">
+<h3 class="anchored" data-anchor-id="first-block-row-1"><strong>First Block Row</strong></h3>
+<p><span class="math display">\[
+L_{11}^Tx_1 + L_{21}^Tx_2 + L_{31}^Tx_3 = y_1
+\]</span></p>
+<p>Rearranged:</p>
+<p><span class="math display">\[
+L_{11}^Tx_1 = y_1 - L_{21}^Tx_2 - L_{31}^Tx_3
+\]</span></p>
+<p>Solve for <span class="math inline">\(x_1\)</span>:</p>
+<p><span class="math display">\[
+x_1 = L_{11}^{-T}\left(y_1 - L_{21}^Tx_2 - L_{31}^Tx_3\right)
+\]</span></p>
+</section>
+<section id="combined-solution-1" class="level3">
+<h3 class="anchored" data-anchor-id="combined-solution-1"><strong>Combined Solution</strong></h3>
+<p><span class="math display">\[
+x = \begin{bmatrix}
+x_1 \\
+x_2 \\
+x_3
+\end{bmatrix} =
+\begin{bmatrix}
+L_{11}^{-T}\left(y_1 - L_{21}^Tx_2 - L_{31}^Tx_3\right) \\
+L_{22}^{-T}\left(y_2 - L_{32}^Tx_3\right) \\
+L_{33}^{-T}y_3
+\end{bmatrix}
+\]</span></p>
 </section>
 </section>
-
-</main>
+<section id="summary-of-forward-backward-step" class="level2">
+<h2 class="anchored" data-anchor-id="summary-of-forward-backward-step">Summary of Forward-Backward Step</h2>
+<p>First solve <span class="math inline">\(Ly = b\)</span>:</p>
+<p><span class="math display">\[
+y = \begin{bmatrix}
+y_1 \\
+y_2 \\
+y_3
+\end{bmatrix} =
+\begin{bmatrix}
+L_{11}^{-1}b_1 \\
+L_{22}^{-1}\left(b_2 - L_{21}y_1\right) \\
+L_{33}^{-1}\left(b_3 - L_{31}y_1 - L_{32}y_2\right)
+\end{bmatrix}
+\]</span></p>
+<p>Then solve <span class="math inline">\(L^Tx = y\)</span></p>
+<p><span class="math display">\[
+x = \begin{bmatrix}
+x_1 \\
+x_2 \\
+x_3
+\end{bmatrix} =
+\begin{bmatrix}
+L_{11}^{-T}\left(y_1 - L_{21}^Tx_2 - L_{31}^Tx_3\right) \\
+L_{22}^{-T}\left(y_2 - L_{32}^Tx_3\right) \\
+L_{33}^{-T}y_3
+\end{bmatrix}
+\]</span></p>
+</section>
+</div></section></div></main>
 <!-- /main column -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {

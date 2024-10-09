@@ -38,20 +38,18 @@ The package is organized into several key files:
 3. `src/maxandsmooth.cpp`: Ties together the Max and Smooth steps
 4. `src/gev.cpp`: Implements GEV-specific functions for likelihood and gradient calculations
 
-# Methods
-
-## Max Step
+# Max Step
 
 The Max step involves computing location-wise maximum likelihood estimates (MLEs) for the GEV model parameters. This step is performed independently for each location, treating the data as if it were independent across locations.
 
-### Data Structure
+## Data Structure
 
 The input data Y, calculated from the UKCP, is structured as a matrix, where:
 
 - Rows represent observations of hourly maximum rainfall in yearly blocks
 - Columns represent different spatial locations over Great Britain.
 
-### Maximum Likelihood Estimation
+## Maximum Likelihood Estimation
 
 For each location (column in Y), we compute the MLEs for the three GEV parameters: location $(\mu)$, scale $(\sigma)$, and shape $(\xi)$. The log-likelihood function for the GEV distribution at a single location is:
 
@@ -69,7 +67,7 @@ $$
 
 where $Y_i$ is the data for location $i$.
 
-#### Link Functions
+### Link Functions
 
 Instead of directly maximizing the likelihood with the original parameters, we transform the parameters using a link function
 
@@ -77,7 +75,7 @@ $$
 \left(\psi, \tau, \phi\right) = h(\mu, \sigma, \xi) = \left(\log(\mu), \log(\sigma) - \log(\mu), \text{logit}(\xi)\right)
 $$
 
-### Implementation
+## Implementation
 
 The maximization is performed using numerical optimization techniques. In our C++ implementation, we use the following approach:
 
@@ -127,11 +125,11 @@ The output of this step includes:
 
 This structure reflects the independence assumption between stations in the Max step, while capturing the parameter dependencies within each station. The outputs, $\hat \eta$ and $Q_{\eta y}$, serve as inputs into the Smooth step.
 
-## Smooth Step
+# Smooth Step
 
 The Smooth step involves Bayesian inference on a latent Gaussian field, using the maximum likelihood estimates from the Max step as data.
 
-### Model Structure
+## Model Structure
 
 Let $\eta$ be the latent field of parameters, and $\hat{\eta}$ be the maximum likelihood estimates from the Max step. The model is structured as follows:
 
@@ -141,7 +139,7 @@ Let $\eta$ be the latent field of parameters, and $\hat{\eta}$ be the maximum li
 
 where $Q_{\eta y}$ is the precision matrix from the Max step, and $Q_\eta$ is the precision matrix of the latent field, parameterized by hyperparameters $\tau_\eta$.
 
-#### Data Level
+### Data Level
 
 The data level models the relationship between the observed maximum likelihood estimates $\hat{\eta}$ and the true latent field $\eta$:
 
@@ -149,7 +147,7 @@ $$\hat{\eta} | \eta \sim N(\eta, Q_{\eta y}^{-1})$$
 
 Here, $Q_{\eta y}$ is the precision matrix obtained from the Max step, representing the uncertainty in the MLE estimates. This can be thought of as using the outputs of the Max step as sufficient statistics for the observed data.
 
-#### Latent Level
+### Latent Level
 
 The latent level models the spatial structure of the parameter field:
 $$
@@ -183,19 +181,11 @@ $$
 
 and $\tau_\eta = \left(\tau_\psi, \tau_\tau, \tau_\phi\right)^T$ are the hyperparameters controlling the strength of spatial dependence for each parameter.
 
-#### Hyperparameter Level
+### Hyperparameter Level
 
 The hyperparameters $\tau_\eta$ are assigned prior distributions. 
 
-### Posterior Distribution
-
-The posterior distribution of interest is:
-
-$$
-p(\eta, \tau | \hat{\eta}) \propto p(\hat{\eta} | \eta) p(\eta | \tau_\eta) p(\tau_\eta)
-$$
-
-### MCMC Sampling
+## MCMC Sampling
 
 The Smooth step uses Metropolis-Hastings MCMC to sample from this posterior. The algorithm alternates between:
 
@@ -203,7 +193,7 @@ The Smooth step uses Metropolis-Hastings MCMC to sample from this posterior. The
 2. Sampling a new latent field $\eta^*$ conditional on $\tau_\eta^*$
 3. Accepting or rejecting the proposal based on the Metropolis-Hastings ratio
 
-#### Latent Field Sampling
+### Latent Field Sampling
 
 The latent field is sampled from the conditional normal distribution
 
@@ -243,7 +233,15 @@ $$
 L_{\text{post}}L_{\text{post}}^T \mu_\text{post} = \hat b_{\eta y}.
 $$
 
-##### Cholesky Decomposition of $Q_\text{post}$
+After that, we sample from the latent field by generating a standard normal random vector $z \sim \mathrm N(0, I)$ and using forward substitution to calculate:
+
+$$
+\eta^* = \mu_\text{post} + L_\text{post}^{-1}z
+$$
+
+# Appendix {.appendix}
+
+## Computing $L_\text{post}$
 
 We first write out $Q_\text{post}$ as
 
@@ -255,7 +253,7 @@ Q_{\phi\psi} & Q_{\phi\tau} & Q_{\phi\phi} + \tau_\phi Q_\text{prior},
 \end{bmatrix}
 $$
 
-where each block on the diagonal has bandwidth 3 and all the off-diagonal blocks are diagonal matrices. Keep in mind that since the off-diagonal blocks are diagonal matrices we have that $Q_{\psi\tau} = Q_{\tau\psi}$, $Q_{\psi\phi} = Q_{\phi\psi}$ and $Q_{\tau\phi} = Q_{\phi\tau}$.We can thus calculate the Cholesky decomposition
+where each block on the diagonal has bandwidth 3 and all the off-diagonal blocks are diagonal matrices. Keep in mind that since the off-diagonal blocks are diagonal matrices we have that $Q_{\psi\tau} = Q_{\tau\psi}$, $Q_{\psi\phi} = Q_{\phi\psi}$ and $Q_{\tau\phi} = Q_{\phi\tau}$. We can thus calculate the Cholesky decomposition
 
 $$
 L_\text{post} = \begin{bmatrix}
@@ -272,6 +270,203 @@ efficiently using a block-Cholesky factorization:
 3. $L_{31} = Q_{\psi\phi}L_{11}^{-T}$
 4. $L_{22} = \mathrm{Chol}(S_{22})$
     - $S_{22} = \left(Q_{\tau\tau} + \tau_\tau Q_\text{prior}\right) - L_{21}L_{21}^T$
-5. $L_{32} = \left(Q_{\phi\tau} - L_{31}L_{21}^T\right)L_{22}^{-T}$
+5. $L_{32} = \left(Q_{\tau\phi} - L_{31}L_{21}^T\right)L_{22}^{-T}$
 6. $L_{33} = \mathrm{Chol}(S_{33})$
     - $S_{33} = \left( Q_{\phi\phi} + \tau_\phi Q_\text{prior} \right) - L_{31}L_{31}^T - L_{32}L_{32}^T$
+
+## Forward Substitution: Solving $Ly = b$
+
+Partition $L$, $y$ and $b$ conformably:
+
+$$
+L_\text{post} = \begin{bmatrix}
+L_{11} & 0 & 0 \\
+L_{21} & L_{22} & 0 \\
+L_{31} & L_{32} & L_{33},
+\end{bmatrix} \qquad
+y = \begin{bmatrix}
+y_1 \\
+y_2 \\
+y_3
+\end{bmatrix} \qquad
+b = \begin{bmatrix}
+b_1 \\
+b_2 \\
+b_3
+\end{bmatrix}.
+$$
+
+### **First Block Row**
+
+$$
+L_{11} y_1 = b_1
+$$
+
+Solve for $y_1$:
+
+$$
+y_1 = L_{11}^{-1}b_1
+$$
+
+### **Second Block Row**
+
+$$
+L_{21}y_1 + L_{22}y_2 = b_2
+$$
+
+Rearranged:
+
+$$
+L_{22}y_2 = b_2 - L_{21}y_1
+$$
+
+Solve for $y_2$:
+
+$$
+y_2 = L_{22}^{-1}\left(b_2 - L_{21}y_1\right)
+$$
+
+### **Third Block Row**
+
+$$
+L_{31}y_1 + L_{32}y_2 + L_{33}y_3 = b_3
+$$
+
+Rearranged:
+
+$$
+L_{33}y_3 = b_3 - L_{31}y_1 - L_{32}y_2
+$$
+
+Solve for $y_3$:
+
+$$
+y_3 = L_{33}^{-1}\left(b_3 - L_{31}y_1 - L_{32}y_2\right)
+$$
+
+### **Combined Solution**
+
+$$
+y = \begin{bmatrix}
+y_1 \\
+y_2 \\
+y_3
+\end{bmatrix} =
+\begin{bmatrix}
+ L_{11}^{-1}b_1 \\
+L_{22}^{-1}\left(b_2 - L_{21}y_1\right) \\
+L_{33}^{-1}\left(b_3 - L_{31}y_1 - L_{32}y_2\right)
+\end{bmatrix}
+$$
+
+## Backward Substitution: Solving $L^Tx = y$
+
+Partition $L^T$ and $x$ like $y$:
+
+$$
+L^T = \begin{bmatrix}
+L_{11}^T & L_{21}^T & L_{31}^T \\
+0 & L_{22}^T & L_{32}^T \\
+0 & 0 & L_{33}^T
+\end{bmatrix}, \quad
+x = \begin{bmatrix}
+x_1 \\
+x_2 \\
+x_3
+\end{bmatrix}
+$$
+
+### **Third Block Row**
+
+$$
+L_{33}^Tx_3 = y_3
+$$
+
+Solve for $x_3$
+
+$$
+x_3 = L_{33}^{-T}y_3
+$$
+
+### **Second Block Row**
+
+$$
+L_{22}^Tx_2 + L_{32}^Tx_3 = y_2
+$$
+
+Rearranged:
+
+$$
+L_{22}^Tx_2 = y_2 - L_{32}^Tx_3
+$$
+
+Solve for $x_2$
+
+$$
+x_2 = L_{22}^{-T}\left(y_2 - L_{32}^Tx_3\right)
+$$
+
+### **First Block Row**
+
+$$
+L_{11}^Tx_1 + L_{21}^Tx_2 + L_{31}^Tx_3 = y_1
+$$
+
+Rearranged:
+
+$$
+L_{11}^Tx_1 = y_1 - L_{21}^Tx_2 - L_{31}^Tx_3
+$$
+
+Solve for $x_1$:
+
+$$
+x_1 = L_{11}^{-T}\left(y_1 - L_{21}^Tx_2 - L_{31}^Tx_3\right)
+$$
+
+### **Combined Solution**
+
+$$
+x = \begin{bmatrix}
+x_1 \\
+x_2 \\
+x_3
+\end{bmatrix} =
+\begin{bmatrix}
+L_{11}^{-T}\left(y_1 - L_{21}^Tx_2 - L_{31}^Tx_3\right) \\
+L_{22}^{-T}\left(y_2 - L_{32}^Tx_3\right) \\
+L_{33}^{-T}y_3
+\end{bmatrix}
+$$
+
+## Summary of Forward-Backward Step
+
+First solve $Ly = b$:
+
+$$
+y = \begin{bmatrix}
+y_1 \\
+y_2 \\
+y_3
+\end{bmatrix} =
+\begin{bmatrix}
+ L_{11}^{-1}b_1 \\
+L_{22}^{-1}\left(b_2 - L_{21}y_1\right) \\
+L_{33}^{-1}\left(b_3 - L_{31}y_1 - L_{32}y_2\right)
+\end{bmatrix}
+$$
+
+Then solve $L^Tx = y$
+
+$$
+x = \begin{bmatrix}
+x_1 \\
+x_2 \\
+x_3
+\end{bmatrix} =
+\begin{bmatrix}
+L_{11}^{-T}\left(y_1 - L_{21}^Tx_2 - L_{31}^Tx_3\right) \\
+L_{22}^{-T}\left(y_2 - L_{32}^Tx_3\right) \\
+L_{33}^{-T}y_3
+\end{bmatrix}
+$$
