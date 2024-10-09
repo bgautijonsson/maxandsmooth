@@ -1,3 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 reading_material
+index.qmd
+docs
+_quarto.yml

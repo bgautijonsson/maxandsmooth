@@ -1,0 +1,27 @@
+project:
+  type: manuscript
+  output-dir: docs
+
+manuscript:
+  article: index.qmd
+  code-links: 
+    - text: GitHub Repo
+      icon: github
+      href: https://github.com/bgautijonsson/maxandsmooth
+
+
+format:
+  html: 
+    toc: true
+    comments:
+      hypothesis: true
+  docx: default
+  jats: default
+  pdf: 
+    keep-tex: true
+ 
+execute:
+  freeze: true
+
+editor: source
+

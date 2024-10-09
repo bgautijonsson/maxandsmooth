@@ -9,11 +9,11 @@ prepare_mle_data <- function(estimates, hessians) {
     .Call(`_maxandsmooth_prepare_mle_data`, estimates, hessians)
 }
 
-create_q_icar <- function(n_stations) {
-    .Call(`_maxandsmooth_create_q_icar`, n_stations)
+create_q_icar <- function(x_dim, y_dim) {
+    .Call(`_maxandsmooth_create_q_icar`, x_dim, y_dim)
 }
 
-maxandsmooth_cpp <- function(data, family, n_iterations = 1000L) {
-    .Call(`_maxandsmooth_maxandsmooth_cpp`, data, family, n_iterations)
+maxandsmooth_cpp <- function(data, x_dim, y_dim, family, n_iterations = 1000L, burn_in = 1000L, thin = 10L, print_every = 100L, proposal_sd = 0.1) {
+    .Call(`_maxandsmooth_maxandsmooth_cpp`, data, x_dim, y_dim, family, n_iterations, burn_in, thin, print_every, proposal_sd)
 }
 

@@ -36,26 +36,33 @@ BEGIN_RCPP
 END_RCPP
 }
 // create_q_icar
-Eigen::SparseMatrix<double> create_q_icar(int n_stations);
-RcppExport SEXP _maxandsmooth_create_q_icar(SEXP n_stationsSEXP) {
+Eigen::SparseMatrix<double> create_q_icar(int x_dim, int y_dim);
+RcppExport SEXP _maxandsmooth_create_q_icar(SEXP x_dimSEXP, SEXP y_dimSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n_stations(n_stationsSEXP);
-    rcpp_result_gen = Rcpp::wrap(create_q_icar(n_stations));
+    Rcpp::traits::input_parameter< int >::type x_dim(x_dimSEXP);
+    Rcpp::traits::input_parameter< int >::type y_dim(y_dimSEXP);
+    rcpp_result_gen = Rcpp::wrap(create_q_icar(x_dim, y_dim));
     return rcpp_result_gen;
 END_RCPP
 }
 // maxandsmooth_cpp
-Eigen::MatrixXd maxandsmooth_cpp(const Eigen::MatrixXd& data, const std::string& family, int n_iterations);
-RcppExport SEXP _maxandsmooth_maxandsmooth_cpp(SEXP dataSEXP, SEXP familySEXP, SEXP n_iterationsSEXP) {
+Rcpp::List maxandsmooth_cpp(const Eigen::MatrixXd& data, int x_dim, int y_dim, const std::string& family, int n_iterations, int burn_in, int thin, int print_every, double proposal_sd);
+RcppExport SEXP _maxandsmooth_maxandsmooth_cpp(SEXP dataSEXP, SEXP x_dimSEXP, SEXP y_dimSEXP, SEXP familySEXP, SEXP n_iterationsSEXP, SEXP burn_inSEXP, SEXP thinSEXP, SEXP print_everySEXP, SEXP proposal_sdSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< int >::type x_dim(x_dimSEXP);
+    Rcpp::traits::input_parameter< int >::type y_dim(y_dimSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type family(familySEXP);
     Rcpp::traits::input_parameter< int >::type n_iterations(n_iterationsSEXP);
-    rcpp_result_gen = Rcpp::wrap(maxandsmooth_cpp(data, family, n_iterations));
+    Rcpp::traits::input_parameter< int >::type burn_in(burn_inSEXP);
+    Rcpp::traits::input_parameter< int >::type thin(thinSEXP);
+    Rcpp::traits::input_parameter< int >::type print_every(print_everySEXP);
+    Rcpp::traits::input_parameter< double >::type proposal_sd(proposal_sdSEXP);
+    rcpp_result_gen = Rcpp::wrap(maxandsmooth_cpp(data, x_dim, y_dim, family, n_iterations, burn_in, thin, print_every, proposal_sd));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -63,8 +70,8 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_maxandsmooth_max_cpp", (DL_FUNC) &_maxandsmooth_max_cpp, 2},
     {"_maxandsmooth_prepare_mle_data", (DL_FUNC) &_maxandsmooth_prepare_mle_data, 2},
-    {"_maxandsmooth_create_q_icar", (DL_FUNC) &_maxandsmooth_create_q_icar, 1},
-    {"_maxandsmooth_maxandsmooth_cpp", (DL_FUNC) &_maxandsmooth_maxandsmooth_cpp, 3},
+    {"_maxandsmooth_create_q_icar", (DL_FUNC) &_maxandsmooth_create_q_icar, 2},
+    {"_maxandsmooth_maxandsmooth_cpp", (DL_FUNC) &_maxandsmooth_maxandsmooth_cpp, 9},
     {NULL, NULL, 0}
 };
 
