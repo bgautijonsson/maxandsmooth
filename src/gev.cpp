@@ -1,227 +1,164 @@
-#include "gev.h"
-#include <cmath>
-#include <limits>
+#include <RcppEigen.h>
+#include <autodiff/forward/dual.hpp>
+#include <autodiff/forward/dual/eigen.hpp>
 #include <nlopt.hpp>
+#include <omp.h>
 
-namespace GEV {
+// [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::depends(autodiff)]]
+// [[Rcpp::depends(nloptr)]]
 
-// Helper functions for link and inverse link
-double inv_logit(double x) {
-    return 1.0 / (1.0 + std::exp(-x));
-}
+using namespace Rcpp;
+using namespace autodiff;
+using namespace Eigen;
 
-double logit(double x) {
-    return std::log(x / (1.0 - x));
-}
+// GEV log-likelihood function
+dual gev_loglik(const VectorXdual& params, const VectorXd& data) {
+    dual psi = params(0);
+    dual tau = params(1);
+    dual phi = params(2);
 
-double gev_log_likelihood(const Eigen::Vector3d& params, const Eigen::VectorXd& data) {
-    double psi = params[0];
-    double tau = params[1];
-    double phi = params[2];
+    dual mu = exp(psi);
+    dual sigma = exp(psi + tau);
+    dual xi = pow(1 + exp(-phi), -1);
 
-    double mu = std::exp(psi);
-    double sigma = std::exp(tau + psi);
-    double xi = inv_logit(phi);
 
-    double log_lik = 0.0;
-    
-    for (int i = 0; i < data.size(); ++i) {
-        double z = (data(i) - mu) / sigma;
-        double t = 1 + xi * z;
-        if (t <= 0) {
-            return std::numeric_limits<double>::lowest();
+    int n = data.size();
+    dual loglik = 0;
+
+    for(int i = 0; i < n; ++i) {
+        dual z = (data(i) - mu) / sigma;
+
+        if (xi < 1e-6) {
+            loglik -= log(sigma) + z + exp(-z);
+        } else {
+            dual t = 1 + xi * z;
+            loglik -= log(sigma) + (1.0 + 1.0 / xi) * log(t) + pow(t, -1.0 / xi);
         }
-        log_lik -= std::log(sigma) + (1 + 1/xi) * std::log(t) + std::pow(t, -1/xi);
-    }
-    return log_lik;
-}
 
-Eigen::Vector3d gev_log_likelihood_gradient(const Eigen::Vector3d& params, const Eigen::VectorXd& data) {
-    double psi = params[0];
-    double tau = params[1];
-    double phi = params[2];
-
-    double mu = std::exp(psi);
-    double sigma = std::exp(tau + psi);
-    double xi = inv_logit(phi);
-
-    Eigen::Vector3d gradient = Eigen::Vector3d::Zero();
-
-    for (int i = 0; i < data.size(); ++i) {
-        double x = data(i);
-        double e2 = std::exp(-phi);
-        double e3 = 1 + e2;
-        double e4 = std::exp(psi + tau);
-        double e7 = (x - mu) / (e3 * e4) + 1;
-
-        // Gradient for psi
-        gradient(0) -= 1 + x * (1 / std::pow(e7, e3) - (2 + e2) / e3) / (e7 * e4);
-
-        // Gradient for tau
-        double e6 = x - mu;
-        double e9 = e6 / (e3 * e4) + 1;
-        gradient(1) -= (1 / std::pow(e9, e3) - (2 + e2) / e3) * e6 / (e9 * e4) + 1;
-
-        // Gradient for phi
-        double e8 = e6 / (e3 * e4);
-        e9 = e8 + 1;
-        double e10 = 2 + e2;
-        gradient(2) -= ((e3 * (1 / std::pow(e9, e3) - 1) * std::log1p(e8) - e6 / (std::pow(e9, e10) * e4)) * e3 + e10 * e6 / (e9 * e4)) * e2 / std::pow(e3, 2);
+        
+        
+        
     }
 
-    return gradient;
+    // Regularization
+    // loglik -= pow(psi, 2); 
+
+    return loglik;
 }
 
-// These calculations are based on the symbolic differentiation of the GEV log-likelihood
-// with respect to the transformed parameters shown in the file symbolic_diff_link_function.R
-Eigen::Matrix3d gev_hessian(const Eigen::Vector3d& params, const Eigen::VectorXd& data) {
-    double psi = params[0];
-    double tau = params[1];
-    double phi = params[2];
+// Function to calculate gradient
+Eigen::VectorXd gev_gradient(const Eigen::Vector3d& params, const Eigen::VectorXd& data) {
+    VectorXdual param_dual = params.cast<dual>();
+    VectorXdual grad;
 
-    double mu = std::exp(psi);
-    double sigma = std::exp(tau + psi);
-    double xi = inv_logit(phi);
+    auto f = [&data](const VectorXdual& p) { return gev_loglik(p, data); };
+    grad = gradient(f, wrt(param_dual), at(param_dual));
 
-    Eigen::Matrix3d hessian = Eigen::Matrix3d::Zero();
-
-    for (int i = 0; i < data.size(); ++i) {
-        double x = data(i);
-        double e2 = std::exp(-phi);
-        double e3 = 1 + e2;
-        double e4 = std::exp(psi + tau);
-        double e5 = e3 * e4;
-        double e6 = mu;
-        double e7 = x - e6;
-        double e9 = e7 / e5 + 1;
-        double e10 = std::pow(e5, 2);
-        double e11 = e6 / e5;
-
-        // Hessian: psi, psi
-        hessian(0, 0) += x * (((1 / e5 - e5 / e10) * e7 + 1 - e11) * 
-            (1 / std::pow(e9, e3) - (2 + e2) / e3) * e4 / std::pow(e9 * e4, 2) - 
-            (e5 * e7 / e10 + e11) * e3 / (std::pow(e9, 3 + e2) * e4));
-
-        // Hessian: psi, tau
-        hessian(0, 1) += x * (((1 / e5 - e5 / e10) * e7 + 1) * 
-            (1 / std::pow(e9, e3) - (2 + e2) / e3) * e4 / std::pow(e9 * e4, 2) - 
-            std::pow(e3, 2) * e7 / (e10 * std::pow(e9, 3 + e2)));
-
-        // Hessian: psi, phi
-        double e8 = e7 / e5;
-        hessian(0, 2) += x * ((std::pow(e9, e2) * e3 * e4 * e7 / e10 - 
-            std::pow(e9, e3) * std::log1p(e8)) / std::pow(e9, 2 * e3) - 
-            (1 - (2 + e2) / e3) / e3) / (e9 * e4);
-        hessian(0, 2) += x * (1 / std::pow(e9, e3) - (2 + e2) / e3) * 
-            std::pow(e4, 2) * e7 / (std::pow(e9 * e4, 2) * e10) * e2;
-
-        // Hessian: tau, tau
-        hessian(1, 1) += (((1 / e5 - e5 / e10) * e7 + 1) * 
-            (1 / std::pow(e9, e3) - (2 + e2) / e3) * e4 / std::pow(e9 * e4, 2) - 
-            std::pow(e3, 2) * e7 / (e10 * std::pow(e9, 3 + e2))) * e7;
-
-        // Hessian: tau, phi
-        hessian(1, 2) += ((std::pow(e9, e2) * e3 * e4 * e7 / e10 - 
-            std::pow(e9, e3) * std::log1p(e8)) / std::pow(e9, 2 * e3) - 
-            (1 - (2 + e2) / e3) / e3) / (e9 * e4);
-        hessian(1, 2) += (1 / std::pow(e9, e3) - (2 + e2) / e3) * 
-            std::pow(e4, 2) * e7 / (std::pow(e9 * e4, 2) * e10) * e2 * e7;
-
-        // Hessian: phi, phi
-        double e13 = std::log1p(e8);
-        double e14 = e9 * e4;
-        double e15 = std::pow(e9, 2 + e2);
-        double e17 = 1 / std::pow(e9, e3) - 1;
-        double e18 = e15 * e4;
-        double e19 = e3 * e17;
-        double phi_phi_term1 = ((std::pow(e9, e3) * (2 + e2) * e4 * e7 / e10 - e15 * e13) / 
-            std::pow(e18, 2) + e19 / (e10 * e9)) * e4 * e7;
-        double phi_phi_term2 = ((std::pow(e9, e2) * e3 * e4 * e7 / e10 - std::pow(e9, e3) * e13) * 
-            e3 / std::pow(e9, 2 * e3 - e3) + 2) / std::pow(e9, e3) - 2;
-        double phi_phi_term3 = (e17 / e14 - (2 + e2) * std::pow(e4, 2) * e7 / 
-            (std::pow(e14, 2) * e10)) * e7;
-        double phi_phi_term4 = ((e19 * e13 - e7 / e18) * e3 + (2 + e2) * e7 / e14) * 
-            (1 - 2 * (e2 / e3));
-        hessian(2, 2) -= ((phi_phi_term1 - phi_phi_term2 * e13) * e3 + phi_phi_term3) * e2 - 
-            phi_phi_term4 * e2 / std::pow(e3, 2);
-    }
-
-    // Fill the lower triangle of the Hessian
-    hessian(1, 0) = hessian(0, 1);
-    hessian(2, 0) = hessian(0, 2);
-    hessian(2, 1) = hessian(1, 2);
-
-    return -hessian;  // Return negative Hessian for Fisher Information
+    return grad.cast<double>();
 }
 
-double gev_neg_log_likelihood_nlopt(unsigned n, const double* x, double* grad, void* data) {
-    const Eigen::VectorXd* pData = reinterpret_cast<const Eigen::VectorXd*>(data);
+// Function to calculate log-likelihood
+double gev_loglik_value(const Eigen::Vector3d& params, const Eigen::VectorXd& data) {
+    VectorXdual param_dual = params.cast<dual>();
+    return val(gev_loglik(param_dual, data));
+}
+
+// Objective function for NLopt
+double objective(unsigned n, const double* x, double* grad, void* f_data) {
+    const Eigen::VectorXd* pData = reinterpret_cast<const Eigen::VectorXd*>(f_data);
     const Eigen::VectorXd& dataVec = *pData;
-
     Eigen::Vector3d params;
-    for (unsigned i = 0; i < n; ++i) {
-        params[i] = x[i];
+    for (int i = 0; i < 3; ++i) {
+        params(i) = x[i];
     }
 
-    double log_lik = gev_log_likelihood(params, dataVec);
-
-    if (std::isinf(log_lik) || std::isnan(log_lik)) {
-        return std::numeric_limits<double>::max();
-    }
-
-    double neg_log_lik = -log_lik;
+    double loglik = gev_loglik_value(params, dataVec);
 
     if (grad) {
-        Eigen::Vector3d gradient = -gev_log_likelihood_gradient(params, dataVec);
-        if (gradient.hasNaN() || !gradient.allFinite()) {
-            for (unsigned i = 0; i < n; ++i) {
-                grad[i] = 0;
-            }
-        } else {
-            for (unsigned i = 0; i < n; ++i) {
-                grad[i] = gradient[i];
-            }
+        Eigen::Vector3d gradient = -gev_gradient(params, dataVec);
+        for (int i = 0; i < 3; ++i) {
+            grad[i] = gradient(i);
         }
     }
 
-    return neg_log_lik;
+    return -loglik;  // Negative because we're minimizing
 }
 
-MLEResult mle(const Eigen::VectorXd& data) {
-    MLEResult result;
+// [[Rcpp::export]]
+Rcpp::List gev_mle(const Eigen::VectorXd& data) {
+    nlopt::opt opt(nlopt::LD_LBFGS, 3);  // 3 parameters
+    Eigen::Vector3d initial_params(std::log(5.0), std::log(5.0) - std::log(1.0), std::log(0.1) - std::log(0.9));
 
-    // Initial guesses for transformed parameters
-    Eigen::Vector3d init_params(std::log(5.0), std::log(1.0) - std::log(5.0), logit(0.1));
-    std::vector<double> x(init_params.data(), init_params.data() + init_params.size());
-
-    // No bounds needed for transformed parameters
-    nlopt::opt opt(nlopt::LD_LBFGS, 3);
-
-    opt.set_min_objective(gev_neg_log_likelihood_nlopt, (void*)&data);
-
+    opt.set_min_objective(objective, (void*)&data);
     opt.set_ftol_rel(1e-6);
-    opt.set_xtol_rel(1e-6);
+    opt.set_xtol_rel(1e-6); 
     opt.set_maxeval(1000);
 
+    std::vector<double> x(initial_params.data(), initial_params.data() + initial_params.size());
     double minf;
 
     try {
-        nlopt::result nlopt_result = opt.optimize(x, minf);
-
-        for (int i = 0; i < 3; ++i) {
-            init_params[i] = x[i];
-        }
-
-        result.estimates = init_params;
-        result.hessian = gev_hessian(init_params, data);
-
-    } catch (std::exception& e) {
-        std::cerr << "NLopt failed: " << e.what() << std::endl;
-        result.estimates = init_params;
-        result.hessian = Eigen::Matrix3d::Zero();
+        nlopt::result result = opt.optimize(x, minf);
+    }
+    catch(std::exception &e) {
+        Rcpp::stop("NLopt failed: " + std::string(e.what()));
     }
 
-    return result;
+    Eigen::Vector3d mle_params(x[0], x[1], x[2]);
+    Eigen::Matrix3d precision = gev_hessian(mle_params, data);
+    Eigen::Vector6d lower_triangle;
+    lower_triangle << precision(0,0), precision(1,0), precision(1,1), precision(2,0), precision(2,1), precision(2,2);
+
+    return Rcpp::List::create(
+        Rcpp::Named("params") = mle_params,
+        Rcpp::Named("precision") = lower_triangle
+    );
 }
 
-} // namespace GEV
+// Function to calculate Hessian
+Eigen::Matrix3d gev_hessian(const Eigen::Vector3d& params, const Eigen::VectorXd& data) {
+    VectorXdual param_dual = params.cast<dual>();
+    Matrix3dual hess;
+
+    auto f = [&data](const VectorXdual& p) { return gev_loglik(p, data); };
+    hess = hessian(f, wrt(param_dual), at(param_dual));
+
+    return -hess.cast<double>();  // Return negative Hessian as precision matrix
+}
+
+// [[Rcpp::export]]
+Rcpp::List gev_mle_multiple(Eigen::MatrixXd& data) {
+    int n_locations = data.cols();
+    Eigen::MatrixXd results(n_locations, 3);
+    std::vector<Eigen::SparseMatrix<double>> precision_blocks(6);
+    
+    for (int i = 0; i < 6; ++i) {
+        precision_blocks[i] = Eigen::SparseMatrix<double>(n_locations, n_locations);
+    }
+
+    #pragma omp parallel for
+    for (int i = 0; i < n_locations; ++i) {
+        Rcpp::List mle_result = gev_mle(data.col(i));
+        results.row(i) = Rcpp::as<Eigen::Vector3d>(mle_result["params"]);
+        Eigen::Vector6d lower_triangle = Rcpp::as<Eigen::Vector6d>(mle_result["precision"]);
+        
+        for (int j = 0; j < 6; ++j) {
+            precision_blocks[j].insert(i, i) = lower_triangle(j);
+        }
+    }
+
+    for (int i = 0; i < 6; ++i) {
+        precision_blocks[i].makeCompressed();
+    }
+
+    return Rcpp::List::create(
+        Rcpp::Named("params") = results,
+        Rcpp::Named("Q_psi_psi") = precision_blocks[0],
+        Rcpp::Named("Q_tau_psi") = precision_blocks[1],
+        Rcpp::Named("Q_tau_tau") = precision_blocks[2],
+        Rcpp::Named("Q_phi_psi") = precision_blocks[3],
+        Rcpp::Named("Q_phi_tau") = precision_blocks[4],
+        Rcpp::Named("Q_phi_phi") = precision_blocks[5]
+    );
+}

@@ -10,4 +10,4 @@ License: GPL (>= 2)
 Imports: Rcpp, RcppEigen, BH, StanHeaders, RcppParallel
 LinkingTo: Rcpp, RcppEigen, BH, StanHeaders, RcppParallel
 RoxygenNote: 7.3.2
-SystemRequirements: autodiff, fftw3
+SystemRequirements: autodiff, nlopt

@@ -51,6 +51,8 @@
     "unordered_map": "cpp",
     "variant": "cpp",
     "algorithm": "cpp",
-    "__config": "cpp"
+    "__config": "cpp",
+    "forward_list": "cpp",
+    "charconv": "cpp"
   }
 }
