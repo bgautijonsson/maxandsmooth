@@ -190,8 +190,153 @@ The hyperparameters $\tau_\eta$ are assigned prior distributions.
 The Smooth step uses Metropolis-Hastings MCMC to sample from this posterior. The algorithm alternates between:
 
 1. Proposing new hyperparameters $\tau_\eta^*$
-2. Sampling a new latent field $\eta^*$ conditional on $\tau_\eta^*$
-3. Accepting or rejecting the proposal based on the Metropolis-Hastings ratio
+2. Accepting or rejecting the proposal based on the Metropolis-Hastings ratio
+3. Sampling a new latent field $\eta^*$ conditional on $\tau_\eta^*$
+
+### Proposing new hyperparameters
+
+### Caltulating the Metropolis-Hastings Ratio
+
+The marginal posterior density of $\tau_\eta$ given $\hat \eta$ is $\pi(\tau_\eta\vert\hat\eta) \propto \pi(\tau_\eta)\pi(\hat\eta\vert\tau_\eta)$ and it can be represented as
+
+$$
+\pi(\tau_\eta \vert \hat \eta) \propto \pi(\tau_\eta) \frac{\pi(\hat \eta \vert \eta, \tau_\eta)\pi(\eta \vert \tau_\eta)}{\pi(\eta \vert \hat \eta, \tau_\eta)},
+$$
+
+using the fact that $\pi(\hat\eta \vert \tau_\eta)\pi(\eta\vert\hat\eta, \tau_\eta) = \pi(\hat\eta\vert\eta,\tau_\eta)\pi(\eta\vert\tau_\eta)$. The densities on the right hand contain $\eta$, but since the density is independent of $\eta$ we can choose any value for $\eta$ *(for example 0)* when calculating the marginal posterior of $\tau_\eta$. In the following, we will show the densities when $\eta = 0$
+
+#### $\pi(\hat \eta \vert \eta, \tau_\eta)$
+
+This is a normal distribution:
+
+$$
+\hat\eta\vert\eta, \tau_\eta \sim \mathrm{N}(\eta, Q_{\eta y}).
+$$
+
+Up to a proportionality constant, this evaluates to
+
+$$
+\frac12 \left(\log\vert Q_{\eta y}\vert - (\hat \eta - \eta)^TQ_{\eta y}(\hat \eta - \eta)\right)
+$$
+
+Since we can choose $\eta = 0$, we get
+
+$$
+\frac12 \left(\log\vert Q_{\eta y}\vert - \hat \eta^TQ_{\eta y}\hat \eta\right),
+$$
+
+A value that is completely independent of $\eta$ and $\tau_eta$. This means we can pre-compute it only once and store the values.
+
+#### $\pi(\eta \vert \tau_\eta)$
+
+$$
+\eta \vert \tau_\eta \sim \mathrm{N}(0, Q_\eta)
+$$
+
+Up to a proportionality constant, this evaluates to
+
+$$
+\frac12\left(\log\vert Q_\eta\vert - \eta^TQ_\eta\eta\right)
+$$
+
+Choosing $\eta = 0$, this simplifies to
+
+$$
+\frac12\log\vert Q_\eta\vert = \frac12  \sum_{i=1}^3\log\vert \tau_i Q_\text{prior}\vert =
+\frac12  \left(3 \log\vert Q_\text{prior}\vert + \sum_{i=1}^3 n\log \tau_i\right)
+$$
+
+We can precompute the determinant of $Q_\text{prior}$ and perform these calculations efficiently
+
+#### $\pi(\eta \vert \hat \eta, \tau_\eta)$
+
+$$
+\eta \vert \hat\eta, \tau_\eta \sim \mathrm{N}(\mu_\text{post}, Q_\text{post})
+$$
+
+where
+
+$$
+Q_{\text{post}} = Q_{\eta y} + Q_\eta
+\qquad
+\text{and}
+\qquad
+\mu_{\text{post}} = Q_{\text{post}}^{-1}\hat b_{\eta y}.
+$$
+
+Up to a proportionality constant, this becomes
+
+$$
+\frac12\left(\log\vert Q_\text{post}\vert - (\eta - \mu_\text{post})^TQ_\text{post}(\eta - \mu_\text{post}) \right)
+$$
+
+Choosing $\eta = 0$, we get
+
+$$
+\frac12\left(\log\vert Q_\text{post}\vert - \mu_\text{post}^TQ_\text{post}\mu_\text{post} \right)
+$$
+
+but
+
+$$
+\mu_\text{post}^TQ_\text{post}\mu_\text{post} = (Q_\text{post}^{-1}\hat b_{\eta y})^T Q_\text{post}(Q_\text{post}^{-1}\hat b_{\eta y}) = \hat b_{\eta y}^TQ_\text{post}^{-1}\hat b_{\eta y}
+$$
+
+Writing this up using the Cholesky factor, $L_\text{post}$ of $Q_\text{post}$, we get
+
+$$
+\hat b_{\eta y}^TQ_\text{post}^{-1}\hat b_{\eta y} = \hat b_{\eta y}^T(L_\text{post} L_\text{post}^T)^{-1}\hat b_{\eta y} = \vert\vert L_\text{post}^{-1}\hat b_{\eta y}\vert\vert
+$$
+
+This means that to calculate this density, we must first compute $L_\text{post}$, then compute $\vert\vert y\vert \vert$, where
+
+$$
+L_\text{post}y = \hat b_{\eta y}
+$$
+
+This can be efficiently computed using the block-Cholesky methods described in the appendix.
+
+#### $\log \pi(\tau_\eta \vert \hat \eta) - \log \pi(\tau_\eta^* \vert \hat \eta)$
+
+In practice, we are not exactly interested in the marginal posterior, $\pi(\tau_\eta \vert \hat \eta)$. Rather, we want to know the value of
+
+$$
+\begin{aligned}
+\log \pi(\tau_\eta \vert \hat \eta) - \log \pi(\tau_\eta^* \vert \hat \eta) &= 
+\left( \log\pi(\tau_\eta) - \log\pi(\tau_\eta^*) \right)  \\ 
+&+\left( \log\pi(\hat \eta \vert \eta, \tau_\eta) - \log\pi(\hat \eta \vert \eta, \tau_\eta^*) \right) \\
+&+ \left( \log\pi(\eta \vert \tau_\eta) - \log \pi(\eta \vert \tau_\eta^*) \right) \\
+&+ \left( \log \pi(\eta \vert \hat \eta, \tau_\eta) - \log \pi(\eta \vert \hat \eta, \tau_\eta^*) \right)
+\end{aligned}
+$$
+
+In particular, since $\log\pi(\hat \eta \vert \eta, \tau_\eta)$ is independent of $\tau_\eta$, this cancels out.
+
+Similarly
+
+$$
+\log\pi(\eta \vert \tau_\eta) - \log \pi(\eta \vert \tau_\eta^*) = \frac{n}{2}\sum_{i=1}^3 \log \tau_i - \log \tau_i^*
+$$
+
+The conditional posterior of $\eta | \hat\eta, \tau_\eta$ becomes
+
+$$
+\log \pi(\eta \vert \hat \eta, \tau_\eta) - \log \pi(\eta \vert \hat \eta, \tau_\eta^*) = 
+\sum_{i=1}^{3n} L_{[i,i] \text{post}} - \sum_{i=1}^{3n}L_{[i,i] \text{post}}^*  - 
+\frac12\left( \vert\vert L_\text{post}^{-1}\hat b_{\eta y}\vert\vert - \vert\vert L_\text{post}^{*-1}\hat b_{\eta y}\vert\vert  \right)
+$$
+
+Alltogether, this leaves us with:
+
+$$
+\begin{aligned}
+\log \pi(\tau_\eta \vert \hat \eta) - \log \pi(\tau_\eta^* \vert \hat \eta) &= 
+\left( \log\pi(\tau_\eta) - \log\pi(\tau_\eta^*) \right)  \\ 
+&+ \frac{n}{2}\sum_{i=1}^3\left( \log \tau_i - \log \tau_i^*\right) \\
+&+ \sum_{i=1}^{3n} L_{[i,i] \text{post}} - \sum_{i=1}^{3n}L_{[i,i] \text{post}}^* \\
+&- \frac12\left( \vert\vert L_\text{post}^{-1}\hat b_{\eta y}\vert\vert - \vert\vert L_\text{post}^{*-1}\hat b_{\eta y}\vert\vert  \right)
+\end{aligned} 
+$$
 
 ### Latent Field Sampling
 
@@ -238,6 +383,34 @@ After that, we sample from the latent field by generating a standard normal rand
 $$
 \eta^* = \mu_\text{post} + L_\text{post}^{-1}z
 $$
+
+### Algorithm
+
+All in all, this leaves us with the following steps to efficiently draw from the posterior:
+
+**Initialization**
+
+1. Initialize $\tau_\eta$ and $\eta$ to sensible values.
+2. Compute $L_\text{post}$ using Block-Cholesky algorithm and store it.
+3. Compute $y$ by solving $L_\text{post}y = \hat b_{\eta y}$ and store it.
+4. Compute $\mu_\text{post}$ by solving $L_\text{post}^T\mu_\text{post} = y$ and store it.
+5. Compute $\frac12\log\vert Q_\text{post}\vert = \sum_{i=1}^{3n} L_{[i,i] \text{post}}$ and store it
+
+**Sampling**
+
+For each iteration:
+
+1. Propose $\tau_\eta^*$
+2. Compute $L_\text{post}^*$ using Block-Cholesky algorithm and store it.
+3. Compute $y^*$ by solving $L_\text{post}^*y = \hat b_{\eta y}$ and store it.
+5. Compute $\frac12\log\vert Q_\text{post}^*\vert = \sum_{i=1}^{3n} L_{[i,i] \text{post}}^*$ and store it
+4. Compute the log-acceptance ratio $\log \pi(\tau_\eta \vert \hat \eta) - \log(\tau_\eta^*\vert \hat \eta)$ and accept/reject the proposed $\tau_\eta^*$
+5. If $\tau_\eta^*$ is accepted:
+    i. Set $L_\text{post} = L_\text{post}^*$, $y = y^*$ and $\frac12\log\vert Q_\text{post}\vert = \frac12\log\vert Q_\text{post}^*\vert$
+    ii. Compute $\mu_\text{post}$ by solving $L_\text{post}^T\mu_\text{post} = y$ and store it.
+    iii. Sample from the latent field using the new values of $\mu_\text{post}$ and $L_\text{post}$
+6. If $\tau_\eta^*$ is rejected:
+    i. Sample from the latent field using the stored values of $\mu_\text{post}$ and $L_\text{post}$
 
 # Appendix {.appendix}
 

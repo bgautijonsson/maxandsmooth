@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Brynjólfur Gauti Guðrúnar Jónsson">
-<meta name="dcterms.date" content="2024-10-09">
+<meta name="dcterms.date" content="2024-10-10">
 
 <title>Applying Max-and-Smooth to the UKCP data</title>
 <style>
@@ -74,10 +74,10 @@ window.Quarto = {
 
 <meta name="citation_title" content="Applying Max-and-Smooth to the UKCP data">
 <meta name="citation_author" content="Brynjólfur Gauti Guðrúnar Jónsson">
-<meta name="citation_publication_date" content="2024-10-09">
-<meta name="citation_cover_date" content="2024-10-09">
+<meta name="citation_publication_date" content="2024-10-10">
+<meta name="citation_cover_date" content="2024-10-10">
 <meta name="citation_year" content="2024">
-<meta name="citation_online_date" content="2024-10-09">
+<meta name="citation_online_date" content="2024-10-10">
 <meta name="citation_language" content="en">
 </head>
 
@@ -105,7 +105,7 @@ window.Quarto = {
                 <div>
             <div class="quarto-title-meta-heading">Published</div>
             <div class="quarto-title-meta-contents">
-              <p class="date">October 9, 2024</p>
+              <p class="date">October 10, 2024</p>
             </div>
           </div>
           
@@ -151,7 +151,10 @@ window.Quarto = {
   </ul></li>
   <li><a href="#mcmc-sampling" id="toc-mcmc-sampling" class="nav-link" data-scroll-target="#mcmc-sampling">MCMC Sampling</a>
   <ul class="collapse">
+  <li><a href="#proposing-new-hyperparameters" id="toc-proposing-new-hyperparameters" class="nav-link" data-scroll-target="#proposing-new-hyperparameters">Proposing new hyperparameters</a></li>
+  <li><a href="#caltulating-the-metropolis-hastings-ratio" id="toc-caltulating-the-metropolis-hastings-ratio" class="nav-link" data-scroll-target="#caltulating-the-metropolis-hastings-ratio">Caltulating the Metropolis-Hastings Ratio</a></li>
   <li><a href="#latent-field-sampling" id="toc-latent-field-sampling" class="nav-link" data-scroll-target="#latent-field-sampling">Latent Field Sampling</a></li>
+  <li><a href="#algorithm" id="toc-algorithm" class="nav-link" data-scroll-target="#algorithm">Algorithm</a></li>
   </ul></li>
   </ul></li>
   
@@ -329,9 +332,121 @@ Q_{\text{prior}} = \begin{bmatrix}
 <p>The Smooth step uses Metropolis-Hastings MCMC to sample from this posterior. The algorithm alternates between:</p>
 <ol type="1">
 <li>Proposing new hyperparameters <span class="math inline">\(\tau_\eta^*\)</span></li>
-<li>Sampling a new latent field <span class="math inline">\(\eta^*\)</span> conditional on <span class="math inline">\(\tau_\eta^*\)</span></li>
 <li>Accepting or rejecting the proposal based on the Metropolis-Hastings ratio</li>
+<li>Sampling a new latent field <span class="math inline">\(\eta^*\)</span> conditional on <span class="math inline">\(\tau_\eta^*\)</span></li>
 </ol>
+<section id="proposing-new-hyperparameters" class="level3">
+<h3 class="anchored" data-anchor-id="proposing-new-hyperparameters">Proposing new hyperparameters</h3>
+</section>
+<section id="caltulating-the-metropolis-hastings-ratio" class="level3">
+<h3 class="anchored" data-anchor-id="caltulating-the-metropolis-hastings-ratio">Caltulating the Metropolis-Hastings Ratio</h3>
+<p>The marginal posterior density of <span class="math inline">\(\tau_\eta\)</span> given <span class="math inline">\(\hat \eta\)</span> is <span class="math inline">\(\pi(\tau_\eta\vert\hat\eta) \propto \pi(\tau_\eta)\pi(\hat\eta\vert\tau_\eta)\)</span> and it can be represented as</p>
+<p><span class="math display">\[
+\pi(\tau_\eta \vert \hat \eta) \propto \pi(\tau_\eta) \frac{\pi(\hat \eta \vert \eta, \tau_\eta)\pi(\eta \vert \tau_\eta)}{\pi(\eta \vert \hat \eta, \tau_\eta)},
+\]</span></p>
+<p>using the fact that <span class="math inline">\(\pi(\hat\eta \vert \tau_\eta)\pi(\eta\vert\hat\eta, \tau_\eta) = \pi(\hat\eta\vert\eta,\tau_\eta)\pi(\eta\vert\tau_\eta)\)</span>. The densities on the right hand contain <span class="math inline">\(\eta\)</span>, but since the density is independent of <span class="math inline">\(\eta\)</span> we can choose any value for <span class="math inline">\(\eta\)</span> <em>(for example 0)</em> when calculating the marginal posterior of <span class="math inline">\(\tau_\eta\)</span>. In the following, we will show the densities when <span class="math inline">\(\eta = 0\)</span></p>
+<section id="pihat-eta-vert-eta-tau_eta" class="level4">
+<h4 class="anchored" data-anchor-id="pihat-eta-vert-eta-tau_eta"><span class="math inline">\(\pi(\hat \eta \vert \eta, \tau_\eta)\)</span></h4>
+<p>This is a normal distribution:</p>
+<p><span class="math display">\[
+\hat\eta\vert\eta, \tau_\eta \sim \mathrm{N}(\eta, Q_{\eta y}).
+\]</span></p>
+<p>Up to a proportionality constant, this evaluates to</p>
+<p><span class="math display">\[
+\frac12 \left(\log\vert Q_{\eta y}\vert - (\hat \eta - \eta)^TQ_{\eta y}(\hat \eta - \eta)\right)
+\]</span></p>
+<p>Since we can choose <span class="math inline">\(\eta = 0\)</span>, we get</p>
+<p><span class="math display">\[
+\frac12 \left(\log\vert Q_{\eta y}\vert - \hat \eta^TQ_{\eta y}\hat \eta\right),
+\]</span></p>
+<p>A value that is completely independent of <span class="math inline">\(\eta\)</span> and <span class="math inline">\(\tau_eta\)</span>. This means we can pre-compute it only once and store the values.</p>
+</section>
+<section id="pieta-vert-tau_eta" class="level4">
+<h4 class="anchored" data-anchor-id="pieta-vert-tau_eta"><span class="math inline">\(\pi(\eta \vert \tau_\eta)\)</span></h4>
+<p><span class="math display">\[
+\eta \vert \tau_\eta \sim \mathrm{N}(0, Q_\eta)
+\]</span></p>
+<p>Up to a proportionality constant, this evaluates to</p>
+<p><span class="math display">\[
+\frac12\left(\log\vert Q_\eta\vert - \eta^TQ_\eta\eta\right)
+\]</span></p>
+<p>Choosing <span class="math inline">\(\eta = 0\)</span>, this simplifies to</p>
+<p><span class="math display">\[
+\frac12\log\vert Q_\eta\vert = \frac12  \sum_{i=1}^3\log\vert \tau_i Q_\text{prior}\vert =
+\frac12  \left(3 \log\vert Q_\text{prior}\vert + \sum_{i=1}^3 n\log \tau_i\right)
+\]</span></p>
+<p>We can precompute the determinant of <span class="math inline">\(Q_\text{prior}\)</span> and perform these calculations efficiently</p>
+</section>
+<section id="pieta-vert-hat-eta-tau_eta" class="level4">
+<h4 class="anchored" data-anchor-id="pieta-vert-hat-eta-tau_eta"><span class="math inline">\(\pi(\eta \vert \hat \eta, \tau_\eta)\)</span></h4>
+<p><span class="math display">\[
+\eta \vert \hat\eta, \tau_\eta \sim \mathrm{N}(\mu_\text{post}, Q_\text{post})
+\]</span></p>
+<p>where</p>
+<p><span class="math display">\[
+Q_{\text{post}} = Q_{\eta y} + Q_\eta
+\qquad
+\text{and}
+\qquad
+\mu_{\text{post}} = Q_{\text{post}}^{-1}\hat b_{\eta y}.
+\]</span></p>
+<p>Up to a proportionality constant, this becomes</p>
+<p><span class="math display">\[
+\frac12\left(\log\vert Q_\text{post}\vert - (\eta - \mu_\text{post})^TQ_\text{post}(\eta - \mu_\text{post}) \right)
+\]</span></p>
+<p>Choosing <span class="math inline">\(\eta = 0\)</span>, we get</p>
+<p><span class="math display">\[
+\frac12\left(\log\vert Q_\text{post}\vert - \mu_\text{post}^TQ_\text{post}\mu_\text{post} \right)
+\]</span></p>
+<p>but</p>
+<p><span class="math display">\[
+\mu_\text{post}^TQ_\text{post}\mu_\text{post} = (Q_\text{post}^{-1}\hat b_{\eta y})^T Q_\text{post}(Q_\text{post}^{-1}\hat b_{\eta y}) = \hat b_{\eta y}^TQ_\text{post}^{-1}\hat b_{\eta y}
+\]</span></p>
+<p>Writing this up using the Cholesky factor, <span class="math inline">\(L_\text{post}\)</span> of <span class="math inline">\(Q_\text{post}\)</span>, we get</p>
+<p><span class="math display">\[
+\hat b_{\eta y}^TQ_\text{post}^{-1}\hat b_{\eta y} = \hat b_{\eta y}^T(L_\text{post} L_\text{post}^T)^{-1}\hat b_{\eta y} = \vert\vert L_\text{post}^{-1}\hat b_{\eta y}\vert\vert
+\]</span></p>
+<p>This means that to calculate this density, we must first compute <span class="math inline">\(L_\text{post}\)</span>, then compute <span class="math inline">\(\vert\vert y\vert \vert\)</span>, where</p>
+<p><span class="math display">\[
+L_\text{post}y = \hat b_{\eta y}
+\]</span></p>
+<p>This can be efficiently computed using the block-Cholesky methods described in the appendix.</p>
+</section>
+<section id="log-pitau_eta-vert-hat-eta---log-pitau_eta-vert-hat-eta" class="level4">
+<h4 class="anchored" data-anchor-id="log-pitau_eta-vert-hat-eta---log-pitau_eta-vert-hat-eta"><span class="math inline">\(\log \pi(\tau_\eta \vert \hat \eta) - \log \pi(\tau_\eta^* \vert \hat \eta)\)</span></h4>
+<p>In practice, we are not exactly interested in the marginal posterior, <span class="math inline">\(\pi(\tau_\eta \vert \hat \eta)\)</span>. Rather, we want to know the value of</p>
+<p><span class="math display">\[
+\begin{aligned}
+\log \pi(\tau_\eta \vert \hat \eta) - \log \pi(\tau_\eta^* \vert \hat \eta) &amp;=
+\left( \log\pi(\tau_\eta) - \log\pi(\tau_\eta^*) \right)  \\
+&amp;+\left( \log\pi(\hat \eta \vert \eta, \tau_\eta) - \log\pi(\hat \eta \vert \eta, \tau_\eta^*) \right) \\
+&amp;+ \left( \log\pi(\eta \vert \tau_\eta) - \log \pi(\eta \vert \tau_\eta^*) \right) \\
+&amp;+ \left( \log \pi(\eta \vert \hat \eta, \tau_\eta) - \log \pi(\eta \vert \hat \eta, \tau_\eta^*) \right)
+\end{aligned}
+\]</span></p>
+<p>In particular, since <span class="math inline">\(\log\pi(\hat \eta \vert \eta, \tau_\eta)\)</span> is independent of <span class="math inline">\(\tau_\eta\)</span>, this cancels out.</p>
+<p>Similarly</p>
+<p><span class="math display">\[
+\log\pi(\eta \vert \tau_\eta) - \log \pi(\eta \vert \tau_\eta^*) = \frac{n}{2}\sum_{i=1}^3 \log \tau_i - \log \tau_i^*
+\]</span></p>
+<p>The conditional posterior of <span class="math inline">\(\eta | \hat\eta, \tau_\eta\)</span> becomes</p>
+<p><span class="math display">\[
+\log \pi(\eta \vert \hat \eta, \tau_\eta) - \log \pi(\eta \vert \hat \eta, \tau_\eta^*) =
+\sum_{i=1}^{3n} L_{[i,i] \text{post}} - \sum_{i=1}^{3n}L_{[i,i] \text{post}}^*  -
+\frac12\left( \vert\vert L_\text{post}^{-1}\hat b_{\eta y}\vert\vert - \vert\vert L_\text{post}^{*-1}\hat b_{\eta y}\vert\vert  \right)
+\]</span></p>
+<p>Alltogether, this leaves us with:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\log \pi(\tau_\eta \vert \hat \eta) - \log \pi(\tau_\eta^* \vert \hat \eta) &amp;=
+\left( \log\pi(\tau_\eta) - \log\pi(\tau_\eta^*) \right)  \\
+&amp;+ \frac{n}{2}\sum_{i=1}^3\left( \log \tau_i - \log \tau_i^*\right) \\
+&amp;+ \sum_{i=1}^{3n} L_{[i,i] \text{post}} - \sum_{i=1}^{3n}L_{[i,i] \text{post}}^* \\
+&amp;- \frac12\left( \vert\vert L_\text{post}^{-1}\hat b_{\eta y}\vert\vert - \vert\vert L_\text{post}^{*-1}\hat b_{\eta y}\vert\vert  \right)
+\end{aligned}
+\]</span></p>
+</section>
+</section>
 <section id="latent-field-sampling" class="level3">
 <h3 class="anchored" data-anchor-id="latent-field-sampling">Latent Field Sampling</h3>
 <p>The latent field is sampled from the conditional normal distribution</p>
@@ -366,6 +481,37 @@ L_{\text{post}}L_{\text{post}}^T \mu_\text{post} = \hat b_{\eta y}.
 <p><span class="math display">\[
 \eta^* = \mu_\text{post} + L_\text{post}^{-1}z
 \]</span></p>
+</section>
+<section id="algorithm" class="level3">
+<h3 class="anchored" data-anchor-id="algorithm">Algorithm</h3>
+<p>All in all, this leaves us with the following steps to efficiently draw from the posterior:</p>
+<p><strong>Initialization</strong></p>
+<ol type="1">
+<li>Initialize <span class="math inline">\(\tau_\eta\)</span> and <span class="math inline">\(\eta\)</span> to sensible values.</li>
+<li>Compute <span class="math inline">\(L_\text{post}\)</span> using Block-Cholesky algorithm and store it.</li>
+<li>Compute <span class="math inline">\(y\)</span> by solving <span class="math inline">\(L_\text{post}y = \hat b_{\eta y}\)</span> and store it.</li>
+<li>Compute <span class="math inline">\(\mu_\text{post}\)</span> by solving <span class="math inline">\(L_\text{post}^T\mu_\text{post} = y\)</span> and store it.</li>
+<li>Compute <span class="math inline">\(\frac12\log\vert Q_\text{post}\vert = \sum_{i=1}^{3n} L_{[i,i] \text{post}}\)</span> and store it</li>
+</ol>
+<p><strong>Sampling</strong></p>
+<p>For each iteration:</p>
+<ol type="1">
+<li>Propose <span class="math inline">\(\tau_\eta^*\)</span></li>
+<li>Compute <span class="math inline">\(L_\text{post}^*\)</span> using Block-Cholesky algorithm and store it.</li>
+<li>Compute <span class="math inline">\(y^*\)</span> by solving <span class="math inline">\(L_\text{post}^*y = \hat b_{\eta y}\)</span> and store it.</li>
+<li>Compute <span class="math inline">\(\frac12\log\vert Q_\text{post}^*\vert = \sum_{i=1}^{3n} L_{[i,i] \text{post}}^*\)</span> and store it</li>
+<li>Compute the log-acceptance ratio <span class="math inline">\(\log \pi(\tau_\eta \vert \hat \eta) - \log(\tau_\eta^*\vert \hat \eta)\)</span> and accept/reject the proposed <span class="math inline">\(\tau_\eta^*\)</span></li>
+<li>If <span class="math inline">\(\tau_\eta^*\)</span> is accepted:
+<ol type="i">
+<li>Set <span class="math inline">\(L_\text{post} = L_\text{post}^*\)</span>, <span class="math inline">\(y = y^*\)</span> and <span class="math inline">\(\frac12\log\vert Q_\text{post}\vert = \frac12\log\vert Q_\text{post}^*\vert\)</span></li>
+<li>Compute <span class="math inline">\(\mu_\text{post}\)</span> by solving <span class="math inline">\(L_\text{post}^T\mu_\text{post} = y\)</span> and store it.</li>
+<li>Sample from the latent field using the new values of <span class="math inline">\(\mu_\text{post}\)</span> and <span class="math inline">\(L_\text{post}\)</span></li>
+</ol></li>
+<li>If <span class="math inline">\(\tau_\eta^*\)</span> is rejected:
+<ol type="i">
+<li>Sample from the latent field using the stored values of <span class="math inline">\(\mu_\text{post}\)</span> and <span class="math inline">\(L_\text{post}\)</span></li>
+</ol></li>
+</ol>
 </section>
 </section>
 </section>

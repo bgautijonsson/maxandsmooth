@@ -1263,14 +1263,1708 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
             <p>Proposing new hyperparameters <inline-formula><alternatives><tex-math><![CDATA[\tau_\eta^*]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>τ</mml:mi><mml:mi>η</mml:mi><mml:mo>*</mml:mo></mml:msubsup></mml:math></alternatives></inline-formula></p>
           </list-item>
           <list-item>
-            <p>Sampling a new latent field <inline-formula><alternatives><tex-math><![CDATA[\eta^*]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msup><mml:mi>η</mml:mi><mml:mo>*</mml:mo></mml:msup></mml:math></alternatives></inline-formula>
-        conditional on <inline-formula><alternatives><tex-math><![CDATA[\tau_\eta^*]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>τ</mml:mi><mml:mi>η</mml:mi><mml:mo>*</mml:mo></mml:msubsup></mml:math></alternatives></inline-formula></p>
-          </list-item>
-          <list-item>
             <p>Accepting or rejecting the proposal based on the
         Metropolis-Hastings ratio</p>
           </list-item>
+          <list-item>
+            <p>Sampling a new latent field <inline-formula><alternatives><tex-math><![CDATA[\eta^*]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msup><mml:mi>η</mml:mi><mml:mo>*</mml:mo></mml:msup></mml:math></alternatives></inline-formula>
+        conditional on <inline-formula><alternatives><tex-math><![CDATA[\tau_\eta^*]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>τ</mml:mi><mml:mi>η</mml:mi><mml:mo>*</mml:mo></mml:msubsup></mml:math></alternatives></inline-formula></p>
+          </list-item>
         </list>
+        <sec id="proposing-new-hyperparameters">
+          <title>Proposing new hyperparameters</title>
+        </sec>
+        <sec id="caltulating-the-metropolis-hastings-ratio">
+          <title>Caltulating the Metropolis-Hastings Ratio</title>
+          <p>The marginal posterior density of
+      <inline-formula><alternatives><tex-math><![CDATA[\tau_\eta]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub></mml:math></alternatives></inline-formula>
+      given <inline-formula><alternatives><tex-math><![CDATA[\hat \eta]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mover><mml:mi>η</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover></mml:math></alternatives></inline-formula>
+      is <inline-formula><alternatives><tex-math><![CDATA[\pi(\tau_\eta\vert\hat\eta) \propto \pi(\tau_\eta)\pi(\hat\eta\vert\tau_\eta)]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>π</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:mover><mml:mi>η</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mo>∝</mml:mo><mml:mi>π</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mi>π</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mover><mml:mi>η</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula>
+      and it can be represented as</p>
+          <p>
+            <disp-formula>
+              <alternatives>
+                <tex-math><![CDATA[
+      \pi(\tau_\eta \vert \hat \eta) \propto \pi(\tau_\eta) \frac{\pi(\hat \eta \vert \eta, \tau_\eta)\pi(\eta \vert \tau_\eta)}{\pi(\eta \vert \hat \eta, \tau_\eta)},
+      ]]></tex-math>
+                <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                  <mml:mrow>
+                    <mml:mi>π</mml:mi>
+                    <mml:mrow>
+                      <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                      <mml:msub>
+                        <mml:mi>τ</mml:mi>
+                        <mml:mi>η</mml:mi>
+                      </mml:msub>
+                      <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                      <mml:mover>
+                        <mml:mi>η</mml:mi>
+                        <mml:mo accent="true">̂</mml:mo>
+                      </mml:mover>
+                      <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                    </mml:mrow>
+                    <mml:mo>∝</mml:mo>
+                    <mml:mi>π</mml:mi>
+                    <mml:mrow>
+                      <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                      <mml:msub>
+                        <mml:mi>τ</mml:mi>
+                        <mml:mi>η</mml:mi>
+                      </mml:msub>
+                      <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                    </mml:mrow>
+                    <mml:mfrac>
+                      <mml:mrow>
+                        <mml:mi>π</mml:mi>
+                        <mml:mrow>
+                          <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                          <mml:mover>
+                            <mml:mi>η</mml:mi>
+                            <mml:mo accent="true">̂</mml:mo>
+                          </mml:mover>
+                          <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo>,</mml:mo>
+                          <mml:msub>
+                            <mml:mi>τ</mml:mi>
+                            <mml:mi>η</mml:mi>
+                          </mml:msub>
+                          <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                        </mml:mrow>
+                        <mml:mi>π</mml:mi>
+                        <mml:mrow>
+                          <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                          <mml:msub>
+                            <mml:mi>τ</mml:mi>
+                            <mml:mi>η</mml:mi>
+                          </mml:msub>
+                          <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                        </mml:mrow>
+                      </mml:mrow>
+                      <mml:mrow>
+                        <mml:mi>π</mml:mi>
+                        <mml:mrow>
+                          <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                          <mml:mover>
+                            <mml:mi>η</mml:mi>
+                            <mml:mo accent="true">̂</mml:mo>
+                          </mml:mover>
+                          <mml:mo>,</mml:mo>
+                          <mml:msub>
+                            <mml:mi>τ</mml:mi>
+                            <mml:mi>η</mml:mi>
+                          </mml:msub>
+                          <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                        </mml:mrow>
+                      </mml:mrow>
+                    </mml:mfrac>
+                    <mml:mo>,</mml:mo>
+                  </mml:mrow>
+                </mml:math>
+              </alternatives>
+            </disp-formula>
+          </p>
+          <p>using the fact that <inline-formula><alternatives><tex-math><![CDATA[\pi(\hat\eta \vert \tau_\eta)\pi(\eta\vert\hat\eta, \tau_\eta) = \pi(\hat\eta\vert\eta,\tau_\eta)\pi(\eta\vert\tau_\eta)]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>π</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mover><mml:mi>η</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mi>π</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mi>η</mml:mi><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:mover><mml:mi>η</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mo>,</mml:mo><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mo>=</mml:mo><mml:mi>π</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mover><mml:mi>η</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:mi>η</mml:mi><mml:mo>,</mml:mo><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mi>π</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mi>η</mml:mi><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula>.
+      The densities on the right hand contain
+      <inline-formula><alternatives><tex-math><![CDATA[\eta]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mi>η</mml:mi></mml:math></alternatives></inline-formula>,
+      but since the density is independent of
+      <inline-formula><alternatives><tex-math><![CDATA[\eta]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mi>η</mml:mi></mml:math></alternatives></inline-formula>
+      we can choose any value for <inline-formula><alternatives><tex-math><![CDATA[\eta]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mi>η</mml:mi></mml:math></alternatives></inline-formula>
+      <italic>(for example 0)</italic> when calculating the marginal
+      posterior of <inline-formula><alternatives><tex-math><![CDATA[\tau_\eta]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub></mml:math></alternatives></inline-formula>.
+      In the following, we will show the densities when
+      <inline-formula><alternatives><tex-math><![CDATA[\eta = 0]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>η</mml:mi><mml:mo>=</mml:mo><mml:mn>0</mml:mn></mml:mrow></mml:math></alternatives></inline-formula></p>
+          <sec id="pihat-eta-vert-eta-tau_eta">
+            <title>
+              <inline-formula>
+                <alternatives>
+                  <tex-math><![CDATA[\pi(\hat \eta \vert \eta, \tau_\eta)]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline">
+                    <mml:mrow>
+                      <mml:mi>π</mml:mi>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mover>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mi>η</mml:mi>
+                        <mml:mo>,</mml:mo>
+                        <mml:msub>
+                          <mml:mi>τ</mml:mi>
+                          <mml:mi>η</mml:mi>
+                        </mml:msub>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </inline-formula>
+            </title>
+            <p>This is a normal distribution:</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \hat\eta\vert\eta, \tau_\eta \sim \mathrm{N}(\eta, Q_{\eta y}).
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:mover>
+                        <mml:mi>η</mml:mi>
+                        <mml:mo accent="true">̂</mml:mo>
+                      </mml:mover>
+                      <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                      <mml:mi>η</mml:mi>
+                      <mml:mo>,</mml:mo>
+                      <mml:msub>
+                        <mml:mi>τ</mml:mi>
+                        <mml:mi>η</mml:mi>
+                      </mml:msub>
+                      <mml:mo>∼</mml:mo>
+                      <mml:mi mathvariant="normal">N</mml:mi>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mi>η</mml:mi>
+                        <mml:mo>,</mml:mo>
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mrow>
+                            <mml:mi>η</mml:mi>
+                            <mml:mi>y</mml:mi>
+                          </mml:mrow>
+                        </mml:msub>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                      <mml:mi>.</mml:mi>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>Up to a proportionality constant, this evaluates to</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \frac12 \left(\log\vert Q_{\eta y}\vert - (\hat \eta - \eta)^TQ_{\eta y}(\hat \eta - \eta)\right)
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:mfrac>
+                        <mml:mn>1</mml:mn>
+                        <mml:mn>2</mml:mn>
+                      </mml:mfrac>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mo>log</mml:mo>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mrow>
+                            <mml:mi>η</mml:mi>
+                            <mml:mi>y</mml:mi>
+                          </mml:mrow>
+                        </mml:msub>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mo>−</mml:mo>
+                        <mml:msup>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                            <mml:mover>
+                              <mml:mi>η</mml:mi>
+                              <mml:mo accent="true">̂</mml:mo>
+                            </mml:mover>
+                            <mml:mo>−</mml:mo>
+                            <mml:mi>η</mml:mi>
+                            <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                          </mml:mrow>
+                          <mml:mi>T</mml:mi>
+                        </mml:msup>
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mrow>
+                            <mml:mi>η</mml:mi>
+                            <mml:mi>y</mml:mi>
+                          </mml:mrow>
+                        </mml:msub>
+                        <mml:mrow>
+                          <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                          <mml:mover>
+                            <mml:mi>η</mml:mi>
+                            <mml:mo accent="true">̂</mml:mo>
+                          </mml:mover>
+                          <mml:mo>−</mml:mo>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                        </mml:mrow>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>Since we can choose <inline-formula><alternatives><tex-math><![CDATA[\eta = 0]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>η</mml:mi><mml:mo>=</mml:mo><mml:mn>0</mml:mn></mml:mrow></mml:math></alternatives></inline-formula>,
+        we get</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \frac12 \left(\log\vert Q_{\eta y}\vert - \hat \eta^TQ_{\eta y}\hat \eta\right),
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:mfrac>
+                        <mml:mn>1</mml:mn>
+                        <mml:mn>2</mml:mn>
+                      </mml:mfrac>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mo>log</mml:mo>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mrow>
+                            <mml:mi>η</mml:mi>
+                            <mml:mi>y</mml:mi>
+                          </mml:mrow>
+                        </mml:msub>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mo>−</mml:mo>
+                        <mml:msup>
+                          <mml:mover>
+                            <mml:mi>η</mml:mi>
+                            <mml:mo accent="true">̂</mml:mo>
+                          </mml:mover>
+                          <mml:mi>T</mml:mi>
+                        </mml:msup>
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mrow>
+                            <mml:mi>η</mml:mi>
+                            <mml:mi>y</mml:mi>
+                          </mml:mrow>
+                        </mml:msub>
+                        <mml:mover>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                      <mml:mo>,</mml:mo>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>A value that is completely independent of
+        <inline-formula><alternatives><tex-math><![CDATA[\eta]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mi>η</mml:mi></mml:math></alternatives></inline-formula>
+        and <inline-formula><alternatives><tex-math><![CDATA[\tau_eta]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msub><mml:mi>τ</mml:mi><mml:mi>e</mml:mi></mml:msub><mml:mi>t</mml:mi><mml:mi>a</mml:mi></mml:mrow></mml:math></alternatives></inline-formula>.
+        This means we can pre-compute it only once and store the
+        values.</p>
+          </sec>
+          <sec id="pieta-vert-tau_eta">
+            <title>
+              <inline-formula>
+                <alternatives>
+                  <tex-math><![CDATA[\pi(\eta \vert \tau_\eta)]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline">
+                    <mml:mrow>
+                      <mml:mi>π</mml:mi>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mi>η</mml:mi>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:msub>
+                          <mml:mi>τ</mml:mi>
+                          <mml:mi>η</mml:mi>
+                        </mml:msub>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </inline-formula>
+            </title>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \eta \vert \tau_\eta \sim \mathrm{N}(0, Q_\eta)
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:mi>η</mml:mi>
+                      <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                      <mml:msub>
+                        <mml:mi>τ</mml:mi>
+                        <mml:mi>η</mml:mi>
+                      </mml:msub>
+                      <mml:mo>∼</mml:mo>
+                      <mml:mi mathvariant="normal">N</mml:mi>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mn>0</mml:mn>
+                        <mml:mo>,</mml:mo>
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mi>η</mml:mi>
+                        </mml:msub>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>Up to a proportionality constant, this evaluates to</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \frac12\left(\log\vert Q_\eta\vert - \eta^TQ_\eta\eta\right)
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:mfrac>
+                        <mml:mn>1</mml:mn>
+                        <mml:mn>2</mml:mn>
+                      </mml:mfrac>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mo>log</mml:mo>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mi>η</mml:mi>
+                        </mml:msub>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mo>−</mml:mo>
+                        <mml:msup>
+                          <mml:mi>η</mml:mi>
+                          <mml:mi>T</mml:mi>
+                        </mml:msup>
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mi>η</mml:mi>
+                        </mml:msub>
+                        <mml:mi>η</mml:mi>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>Choosing <inline-formula><alternatives><tex-math><![CDATA[\eta = 0]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>η</mml:mi><mml:mo>=</mml:mo><mml:mn>0</mml:mn></mml:mrow></mml:math></alternatives></inline-formula>,
+        this simplifies to</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \frac12\log\vert Q_\eta\vert = \frac12  \sum_{i=1}^3\log\vert \tau_i Q_\text{prior}\vert =
+        \frac12  \left(3 \log\vert Q_\text{prior}\vert + \sum_{i=1}^3 n\log \tau_i\right)
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:mfrac>
+                        <mml:mn>1</mml:mn>
+                        <mml:mn>2</mml:mn>
+                      </mml:mfrac>
+                      <mml:mo>log</mml:mo>
+                      <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mi>η</mml:mi>
+                      </mml:msub>
+                      <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                      <mml:mo>=</mml:mo>
+                      <mml:mfrac>
+                        <mml:mn>1</mml:mn>
+                        <mml:mn>2</mml:mn>
+                      </mml:mfrac>
+                      <mml:munderover>
+                        <mml:mo>∑</mml:mo>
+                        <mml:mrow>
+                          <mml:mi>i</mml:mi>
+                          <mml:mo>=</mml:mo>
+                          <mml:mn>1</mml:mn>
+                        </mml:mrow>
+                        <mml:mn>3</mml:mn>
+                      </mml:munderover>
+                      <mml:mo>log</mml:mo>
+                      <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                      <mml:msub>
+                        <mml:mi>τ</mml:mi>
+                        <mml:mi>i</mml:mi>
+                      </mml:msub>
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mtext mathvariant="normal">prior</mml:mtext>
+                      </mml:msub>
+                      <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                      <mml:mo>=</mml:mo>
+                      <mml:mfrac>
+                        <mml:mn>1</mml:mn>
+                        <mml:mn>2</mml:mn>
+                      </mml:mfrac>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mn>3</mml:mn>
+                        <mml:mo>log</mml:mo>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mtext mathvariant="normal">prior</mml:mtext>
+                        </mml:msub>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mo>+</mml:mo>
+                        <mml:munderover>
+                          <mml:mo>∑</mml:mo>
+                          <mml:mrow>
+                            <mml:mi>i</mml:mi>
+                            <mml:mo>=</mml:mo>
+                            <mml:mn>1</mml:mn>
+                          </mml:mrow>
+                          <mml:mn>3</mml:mn>
+                        </mml:munderover>
+                        <mml:mi>n</mml:mi>
+                        <mml:mo>log</mml:mo>
+                        <mml:msub>
+                          <mml:mi>τ</mml:mi>
+                          <mml:mi>i</mml:mi>
+                        </mml:msub>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>We can precompute the determinant of
+        <inline-formula><alternatives><tex-math><![CDATA[Q_\text{prior}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>Q</mml:mi><mml:mtext mathvariant="normal">prior</mml:mtext></mml:msub></mml:math></alternatives></inline-formula>
+        and perform these calculations efficiently</p>
+          </sec>
+          <sec id="pieta-vert-hat-eta-tau_eta">
+            <title>
+              <inline-formula>
+                <alternatives>
+                  <tex-math><![CDATA[\pi(\eta \vert \hat \eta, \tau_\eta)]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline">
+                    <mml:mrow>
+                      <mml:mi>π</mml:mi>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mi>η</mml:mi>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mover>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mo>,</mml:mo>
+                        <mml:msub>
+                          <mml:mi>τ</mml:mi>
+                          <mml:mi>η</mml:mi>
+                        </mml:msub>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </inline-formula>
+            </title>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \eta \vert \hat\eta, \tau_\eta \sim \mathrm{N}(\mu_\text{post}, Q_\text{post})
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:mi>η</mml:mi>
+                      <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                      <mml:mover>
+                        <mml:mi>η</mml:mi>
+                        <mml:mo accent="true">̂</mml:mo>
+                      </mml:mover>
+                      <mml:mo>,</mml:mo>
+                      <mml:msub>
+                        <mml:mi>τ</mml:mi>
+                        <mml:mi>η</mml:mi>
+                      </mml:msub>
+                      <mml:mo>∼</mml:mo>
+                      <mml:mi mathvariant="normal">N</mml:mi>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:msub>
+                          <mml:mi>μ</mml:mi>
+                          <mml:mtext mathvariant="normal">post</mml:mtext>
+                        </mml:msub>
+                        <mml:mo>,</mml:mo>
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mtext mathvariant="normal">post</mml:mtext>
+                        </mml:msub>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>where</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        Q_{\text{post}} = Q_{\eta y} + Q_\eta
+        \qquad
+        \text{and}
+        \qquad
+        \mu_{\text{post}} = Q_{\text{post}}^{-1}\hat b_{\eta y}.
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mtext mathvariant="normal">post</mml:mtext>
+                      </mml:msub>
+                      <mml:mo>=</mml:mo>
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mrow>
+                          <mml:mi>η</mml:mi>
+                          <mml:mi>y</mml:mi>
+                        </mml:mrow>
+                      </mml:msub>
+                      <mml:mo>+</mml:mo>
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mi>η</mml:mi>
+                      </mml:msub>
+                      <mml:mspace width="2.0em"/>
+                      <mml:mtext mathvariant="normal">and</mml:mtext>
+                      <mml:mspace width="2.0em"/>
+                      <mml:msub>
+                        <mml:mi>μ</mml:mi>
+                        <mml:mtext mathvariant="normal">post</mml:mtext>
+                      </mml:msub>
+                      <mml:mo>=</mml:mo>
+                      <mml:msubsup>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mtext mathvariant="normal">post</mml:mtext>
+                        <mml:mrow>
+                          <mml:mi>−</mml:mi>
+                          <mml:mn>1</mml:mn>
+                        </mml:mrow>
+                      </mml:msubsup>
+                      <mml:msub>
+                        <mml:mover>
+                          <mml:mi>b</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mrow>
+                          <mml:mi>η</mml:mi>
+                          <mml:mi>y</mml:mi>
+                        </mml:mrow>
+                      </mml:msub>
+                      <mml:mi>.</mml:mi>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>Up to a proportionality constant, this becomes</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \frac12\left(\log\vert Q_\text{post}\vert - (\eta - \mu_\text{post})^TQ_\text{post}(\eta - \mu_\text{post}) \right)
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:mfrac>
+                        <mml:mn>1</mml:mn>
+                        <mml:mn>2</mml:mn>
+                      </mml:mfrac>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mo>log</mml:mo>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mtext mathvariant="normal">post</mml:mtext>
+                        </mml:msub>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mo>−</mml:mo>
+                        <mml:msup>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                            <mml:mi>η</mml:mi>
+                            <mml:mo>−</mml:mo>
+                            <mml:msub>
+                              <mml:mi>μ</mml:mi>
+                              <mml:mtext mathvariant="normal">post</mml:mtext>
+                            </mml:msub>
+                            <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                          </mml:mrow>
+                          <mml:mi>T</mml:mi>
+                        </mml:msup>
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mtext mathvariant="normal">post</mml:mtext>
+                        </mml:msub>
+                        <mml:mrow>
+                          <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo>−</mml:mo>
+                          <mml:msub>
+                            <mml:mi>μ</mml:mi>
+                            <mml:mtext mathvariant="normal">post</mml:mtext>
+                          </mml:msub>
+                          <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                        </mml:mrow>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>Choosing <inline-formula><alternatives><tex-math><![CDATA[\eta = 0]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>η</mml:mi><mml:mo>=</mml:mo><mml:mn>0</mml:mn></mml:mrow></mml:math></alternatives></inline-formula>,
+        we get</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \frac12\left(\log\vert Q_\text{post}\vert - \mu_\text{post}^TQ_\text{post}\mu_\text{post} \right)
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:mfrac>
+                        <mml:mn>1</mml:mn>
+                        <mml:mn>2</mml:mn>
+                      </mml:mfrac>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mo>log</mml:mo>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mtext mathvariant="normal">post</mml:mtext>
+                        </mml:msub>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mo>−</mml:mo>
+                        <mml:msubsup>
+                          <mml:mi>μ</mml:mi>
+                          <mml:mtext mathvariant="normal">post</mml:mtext>
+                          <mml:mi>T</mml:mi>
+                        </mml:msubsup>
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mtext mathvariant="normal">post</mml:mtext>
+                        </mml:msub>
+                        <mml:msub>
+                          <mml:mi>μ</mml:mi>
+                          <mml:mtext mathvariant="normal">post</mml:mtext>
+                        </mml:msub>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>but</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \mu_\text{post}^TQ_\text{post}\mu_\text{post} = (Q_\text{post}^{-1}\hat b_{\eta y})^T Q_\text{post}(Q_\text{post}^{-1}\hat b_{\eta y}) = \hat b_{\eta y}^TQ_\text{post}^{-1}\hat b_{\eta y}
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:msubsup>
+                        <mml:mi>μ</mml:mi>
+                        <mml:mtext mathvariant="normal">post</mml:mtext>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mtext mathvariant="normal">post</mml:mtext>
+                      </mml:msub>
+                      <mml:msub>
+                        <mml:mi>μ</mml:mi>
+                        <mml:mtext mathvariant="normal">post</mml:mtext>
+                      </mml:msub>
+                      <mml:mo>=</mml:mo>
+                      <mml:msup>
+                        <mml:mrow>
+                          <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                          <mml:msubsup>
+                            <mml:mi>Q</mml:mi>
+                            <mml:mtext mathvariant="normal">post</mml:mtext>
+                            <mml:mrow>
+                              <mml:mi>−</mml:mi>
+                              <mml:mn>1</mml:mn>
+                            </mml:mrow>
+                          </mml:msubsup>
+                          <mml:msub>
+                            <mml:mover>
+                              <mml:mi>b</mml:mi>
+                              <mml:mo accent="true">̂</mml:mo>
+                            </mml:mover>
+                            <mml:mrow>
+                              <mml:mi>η</mml:mi>
+                              <mml:mi>y</mml:mi>
+                            </mml:mrow>
+                          </mml:msub>
+                          <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                        </mml:mrow>
+                        <mml:mi>T</mml:mi>
+                      </mml:msup>
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mtext mathvariant="normal">post</mml:mtext>
+                      </mml:msub>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:msubsup>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mtext mathvariant="normal">post</mml:mtext>
+                          <mml:mrow>
+                            <mml:mi>−</mml:mi>
+                            <mml:mn>1</mml:mn>
+                          </mml:mrow>
+                        </mml:msubsup>
+                        <mml:msub>
+                          <mml:mover>
+                            <mml:mi>b</mml:mi>
+                            <mml:mo accent="true">̂</mml:mo>
+                          </mml:mover>
+                          <mml:mrow>
+                            <mml:mi>η</mml:mi>
+                            <mml:mi>y</mml:mi>
+                          </mml:mrow>
+                        </mml:msub>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                      <mml:mo>=</mml:mo>
+                      <mml:msubsup>
+                        <mml:mover>
+                          <mml:mi>b</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mrow>
+                          <mml:mi>η</mml:mi>
+                          <mml:mi>y</mml:mi>
+                        </mml:mrow>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                      <mml:msubsup>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mtext mathvariant="normal">post</mml:mtext>
+                        <mml:mrow>
+                          <mml:mi>−</mml:mi>
+                          <mml:mn>1</mml:mn>
+                        </mml:mrow>
+                      </mml:msubsup>
+                      <mml:msub>
+                        <mml:mover>
+                          <mml:mi>b</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mrow>
+                          <mml:mi>η</mml:mi>
+                          <mml:mi>y</mml:mi>
+                        </mml:mrow>
+                      </mml:msub>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>Writing this up using the Cholesky factor,
+        <inline-formula><alternatives><tex-math><![CDATA[L_\text{post}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub></mml:math></alternatives></inline-formula>
+        of <inline-formula><alternatives><tex-math><![CDATA[Q_\text{post}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>Q</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub></mml:math></alternatives></inline-formula>,
+        we get</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \hat b_{\eta y}^TQ_\text{post}^{-1}\hat b_{\eta y} = \hat b_{\eta y}^T(L_\text{post} L_\text{post}^T)^{-1}\hat b_{\eta y} = \vert\vert L_\text{post}^{-1}\hat b_{\eta y}\vert\vert
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:msubsup>
+                        <mml:mover>
+                          <mml:mi>b</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mrow>
+                          <mml:mi>η</mml:mi>
+                          <mml:mi>y</mml:mi>
+                        </mml:mrow>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                      <mml:msubsup>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mtext mathvariant="normal">post</mml:mtext>
+                        <mml:mrow>
+                          <mml:mi>−</mml:mi>
+                          <mml:mn>1</mml:mn>
+                        </mml:mrow>
+                      </mml:msubsup>
+                      <mml:msub>
+                        <mml:mover>
+                          <mml:mi>b</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mrow>
+                          <mml:mi>η</mml:mi>
+                          <mml:mi>y</mml:mi>
+                        </mml:mrow>
+                      </mml:msub>
+                      <mml:mo>=</mml:mo>
+                      <mml:msubsup>
+                        <mml:mover>
+                          <mml:mi>b</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mrow>
+                          <mml:mi>η</mml:mi>
+                          <mml:mi>y</mml:mi>
+                        </mml:mrow>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                      <mml:msup>
+                        <mml:mrow>
+                          <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                          <mml:msub>
+                            <mml:mi>L</mml:mi>
+                            <mml:mtext mathvariant="normal">post</mml:mtext>
+                          </mml:msub>
+                          <mml:msubsup>
+                            <mml:mi>L</mml:mi>
+                            <mml:mtext mathvariant="normal">post</mml:mtext>
+                            <mml:mi>T</mml:mi>
+                          </mml:msubsup>
+                          <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                        </mml:mrow>
+                        <mml:mrow>
+                          <mml:mi>−</mml:mi>
+                          <mml:mn>1</mml:mn>
+                        </mml:mrow>
+                      </mml:msup>
+                      <mml:msub>
+                        <mml:mover>
+                          <mml:mi>b</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mrow>
+                          <mml:mi>η</mml:mi>
+                          <mml:mi>y</mml:mi>
+                        </mml:mrow>
+                      </mml:msub>
+                      <mml:mo>=</mml:mo>
+                      <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                      <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mtext mathvariant="normal">post</mml:mtext>
+                        <mml:mrow>
+                          <mml:mi>−</mml:mi>
+                          <mml:mn>1</mml:mn>
+                        </mml:mrow>
+                      </mml:msubsup>
+                      <mml:msub>
+                        <mml:mover>
+                          <mml:mi>b</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mrow>
+                          <mml:mi>η</mml:mi>
+                          <mml:mi>y</mml:mi>
+                        </mml:mrow>
+                      </mml:msub>
+                      <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                      <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>This means that to calculate this density, we must first
+        compute <inline-formula><alternatives><tex-math><![CDATA[L_\text{post}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub></mml:math></alternatives></inline-formula>,
+        then compute <inline-formula><alternatives><tex-math><![CDATA[\vert\vert y\vert \vert]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:mi>y</mml:mi><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:mo stretchy="false" form="postfix">|</mml:mo></mml:mrow></mml:math></alternatives></inline-formula>,
+        where</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        L_\text{post}y = \hat b_{\eta y}
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mtext mathvariant="normal">post</mml:mtext>
+                      </mml:msub>
+                      <mml:mi>y</mml:mi>
+                      <mml:mo>=</mml:mo>
+                      <mml:msub>
+                        <mml:mover>
+                          <mml:mi>b</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mrow>
+                          <mml:mi>η</mml:mi>
+                          <mml:mi>y</mml:mi>
+                        </mml:mrow>
+                      </mml:msub>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>This can be efficiently computed using the block-Cholesky
+        methods described in the appendix.</p>
+          </sec>
+          <sec id="log-pitau_eta-vert-hat-eta---log-pitau_eta-vert-hat-eta">
+            <title>
+              <inline-formula>
+                <alternatives>
+                  <tex-math><![CDATA[\log \pi(\tau_\eta \vert \hat \eta) - \log \pi(\tau_\eta^* \vert \hat \eta)]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline">
+                    <mml:mrow>
+                      <mml:mo>log</mml:mo>
+                      <mml:mi>π</mml:mi>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:msub>
+                          <mml:mi>τ</mml:mi>
+                          <mml:mi>η</mml:mi>
+                        </mml:msub>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mover>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                      <mml:mo>−</mml:mo>
+                      <mml:mo>log</mml:mo>
+                      <mml:mi>π</mml:mi>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:msubsup>
+                          <mml:mi>τ</mml:mi>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo>*</mml:mo>
+                        </mml:msubsup>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mover>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </inline-formula>
+            </title>
+            <p>In practice, we are not exactly interested in the marginal
+        posterior, <inline-formula><alternatives><tex-math><![CDATA[\pi(\tau_\eta \vert \hat \eta)]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>π</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:mover><mml:mi>η</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula>.
+        Rather, we want to know the value of</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \begin{aligned}
+        \log \pi(\tau_\eta \vert \hat \eta) - \log \pi(\tau_\eta^* \vert \hat \eta) &= 
+        \left( \log\pi(\tau_\eta) - \log\pi(\tau_\eta^*) \right)  \\ 
+        &+\left( \log\pi(\hat \eta \vert \eta, \tau_\eta) - \log\pi(\hat \eta \vert \eta, \tau_\eta^*) \right) \\
+        &+ \left( \log\pi(\eta \vert \tau_\eta) - \log \pi(\eta \vert \tau_\eta^*) \right) \\
+        &+ \left( \log \pi(\eta \vert \hat \eta, \tau_\eta) - \log \pi(\eta \vert \hat \eta, \tau_\eta^*) \right)
+        \end{aligned}
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mtable>
+                      <mml:mtr>
+                        <mml:mtd columnalign="right" style="text-align: right">
+                          <mml:mo>log</mml:mo>
+                          <mml:mi>π</mml:mi>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                            <mml:msub>
+                              <mml:mi>τ</mml:mi>
+                              <mml:mi>η</mml:mi>
+                            </mml:msub>
+                            <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                            <mml:mover>
+                              <mml:mi>η</mml:mi>
+                              <mml:mo accent="true">̂</mml:mo>
+                            </mml:mover>
+                            <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                          </mml:mrow>
+                          <mml:mo>−</mml:mo>
+                          <mml:mo>log</mml:mo>
+                          <mml:mi>π</mml:mi>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                            <mml:msubsup>
+                              <mml:mi>τ</mml:mi>
+                              <mml:mi>η</mml:mi>
+                              <mml:mo>*</mml:mo>
+                            </mml:msubsup>
+                            <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                            <mml:mover>
+                              <mml:mi>η</mml:mi>
+                              <mml:mo accent="true">̂</mml:mo>
+                            </mml:mover>
+                            <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                          </mml:mrow>
+                        </mml:mtd>
+                        <mml:mtd columnalign="left" style="text-align: left">
+                          <mml:mo>=</mml:mo>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                            <mml:mo>log</mml:mo>
+                            <mml:mi>π</mml:mi>
+                            <mml:mrow>
+                              <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                              <mml:msub>
+                                <mml:mi>τ</mml:mi>
+                                <mml:mi>η</mml:mi>
+                              </mml:msub>
+                              <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                            </mml:mrow>
+                            <mml:mo>−</mml:mo>
+                            <mml:mo>log</mml:mo>
+                            <mml:mi>π</mml:mi>
+                            <mml:mrow>
+                              <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                              <mml:msubsup>
+                                <mml:mi>τ</mml:mi>
+                                <mml:mi>η</mml:mi>
+                                <mml:mo>*</mml:mo>
+                              </mml:msubsup>
+                              <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                            </mml:mrow>
+                            <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                          </mml:mrow>
+                        </mml:mtd>
+                      </mml:mtr>
+                      <mml:mtr>
+                        <mml:mtd columnalign="right" style="text-align: right"/>
+                        <mml:mtd columnalign="left" style="text-align: left">
+                          <mml:mi>+</mml:mi>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                            <mml:mo>log</mml:mo>
+                            <mml:mi>π</mml:mi>
+                            <mml:mrow>
+                              <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                              <mml:mover>
+                                <mml:mi>η</mml:mi>
+                                <mml:mo accent="true">̂</mml:mo>
+                              </mml:mover>
+                              <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                              <mml:mi>η</mml:mi>
+                              <mml:mo>,</mml:mo>
+                              <mml:msub>
+                                <mml:mi>τ</mml:mi>
+                                <mml:mi>η</mml:mi>
+                              </mml:msub>
+                              <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                            </mml:mrow>
+                            <mml:mo>−</mml:mo>
+                            <mml:mo>log</mml:mo>
+                            <mml:mi>π</mml:mi>
+                            <mml:mrow>
+                              <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                              <mml:mover>
+                                <mml:mi>η</mml:mi>
+                                <mml:mo accent="true">̂</mml:mo>
+                              </mml:mover>
+                              <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                              <mml:mi>η</mml:mi>
+                              <mml:mo>,</mml:mo>
+                              <mml:msubsup>
+                                <mml:mi>τ</mml:mi>
+                                <mml:mi>η</mml:mi>
+                                <mml:mo>*</mml:mo>
+                              </mml:msubsup>
+                              <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                            </mml:mrow>
+                            <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                          </mml:mrow>
+                        </mml:mtd>
+                      </mml:mtr>
+                      <mml:mtr>
+                        <mml:mtd columnalign="right" style="text-align: right"/>
+                        <mml:mtd columnalign="left" style="text-align: left">
+                          <mml:mi>+</mml:mi>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                            <mml:mo>log</mml:mo>
+                            <mml:mi>π</mml:mi>
+                            <mml:mrow>
+                              <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                              <mml:mi>η</mml:mi>
+                              <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                              <mml:msub>
+                                <mml:mi>τ</mml:mi>
+                                <mml:mi>η</mml:mi>
+                              </mml:msub>
+                              <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                            </mml:mrow>
+                            <mml:mo>−</mml:mo>
+                            <mml:mo>log</mml:mo>
+                            <mml:mi>π</mml:mi>
+                            <mml:mrow>
+                              <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                              <mml:mi>η</mml:mi>
+                              <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                              <mml:msubsup>
+                                <mml:mi>τ</mml:mi>
+                                <mml:mi>η</mml:mi>
+                                <mml:mo>*</mml:mo>
+                              </mml:msubsup>
+                              <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                            </mml:mrow>
+                            <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                          </mml:mrow>
+                        </mml:mtd>
+                      </mml:mtr>
+                      <mml:mtr>
+                        <mml:mtd columnalign="right" style="text-align: right"/>
+                        <mml:mtd columnalign="left" style="text-align: left">
+                          <mml:mi>+</mml:mi>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                            <mml:mo>log</mml:mo>
+                            <mml:mi>π</mml:mi>
+                            <mml:mrow>
+                              <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                              <mml:mi>η</mml:mi>
+                              <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                              <mml:mover>
+                                <mml:mi>η</mml:mi>
+                                <mml:mo accent="true">̂</mml:mo>
+                              </mml:mover>
+                              <mml:mo>,</mml:mo>
+                              <mml:msub>
+                                <mml:mi>τ</mml:mi>
+                                <mml:mi>η</mml:mi>
+                              </mml:msub>
+                              <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                            </mml:mrow>
+                            <mml:mo>−</mml:mo>
+                            <mml:mo>log</mml:mo>
+                            <mml:mi>π</mml:mi>
+                            <mml:mrow>
+                              <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                              <mml:mi>η</mml:mi>
+                              <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                              <mml:mover>
+                                <mml:mi>η</mml:mi>
+                                <mml:mo accent="true">̂</mml:mo>
+                              </mml:mover>
+                              <mml:mo>,</mml:mo>
+                              <mml:msubsup>
+                                <mml:mi>τ</mml:mi>
+                                <mml:mi>η</mml:mi>
+                                <mml:mo>*</mml:mo>
+                              </mml:msubsup>
+                              <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                            </mml:mrow>
+                            <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                          </mml:mrow>
+                        </mml:mtd>
+                      </mml:mtr>
+                    </mml:mtable>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>In particular, since <inline-formula><alternatives><tex-math><![CDATA[\log\pi(\hat \eta \vert \eta, \tau_\eta)]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mo>log</mml:mo><mml:mi>π</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mover><mml:mi>η</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:mi>η</mml:mi><mml:mo>,</mml:mo><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula>
+        is independent of <inline-formula><alternatives><tex-math><![CDATA[\tau_\eta]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub></mml:math></alternatives></inline-formula>,
+        this cancels out.</p>
+            <p>Similarly</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \log\pi(\eta \vert \tau_\eta) - \log \pi(\eta \vert \tau_\eta^*) = \frac{n}{2}\sum_{i=1}^3 \log \tau_i - \log \tau_i^*
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:mo>log</mml:mo>
+                      <mml:mi>π</mml:mi>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mi>η</mml:mi>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:msub>
+                          <mml:mi>τ</mml:mi>
+                          <mml:mi>η</mml:mi>
+                        </mml:msub>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                      <mml:mo>−</mml:mo>
+                      <mml:mo>log</mml:mo>
+                      <mml:mi>π</mml:mi>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mi>η</mml:mi>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:msubsup>
+                          <mml:mi>τ</mml:mi>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo>*</mml:mo>
+                        </mml:msubsup>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                      <mml:mo>=</mml:mo>
+                      <mml:mfrac>
+                        <mml:mi>n</mml:mi>
+                        <mml:mn>2</mml:mn>
+                      </mml:mfrac>
+                      <mml:munderover>
+                        <mml:mo>∑</mml:mo>
+                        <mml:mrow>
+                          <mml:mi>i</mml:mi>
+                          <mml:mo>=</mml:mo>
+                          <mml:mn>1</mml:mn>
+                        </mml:mrow>
+                        <mml:mn>3</mml:mn>
+                      </mml:munderover>
+                      <mml:mo>log</mml:mo>
+                      <mml:msub>
+                        <mml:mi>τ</mml:mi>
+                        <mml:mi>i</mml:mi>
+                      </mml:msub>
+                      <mml:mo>−</mml:mo>
+                      <mml:mo>log</mml:mo>
+                      <mml:msubsup>
+                        <mml:mi>τ</mml:mi>
+                        <mml:mi>i</mml:mi>
+                        <mml:mo>*</mml:mo>
+                      </mml:msubsup>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>The conditional posterior of <inline-formula><alternatives><tex-math><![CDATA[\eta | \hat\eta, \tau_\eta]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>η</mml:mi><mml:mo stretchy="false" form="prefix">|</mml:mo><mml:mover><mml:mi>η</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mo>,</mml:mo><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub></mml:mrow></mml:math></alternatives></inline-formula>
+        becomes</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \log \pi(\eta \vert \hat \eta, \tau_\eta) - \log \pi(\eta \vert \hat \eta, \tau_\eta^*) = 
+        \sum_{i=1}^{3n} L_{[i,i] \text{post}} - \sum_{i=1}^{3n}L_{[i,i] \text{post}}^*  - 
+        \frac12\left( \vert\vert L_\text{post}^{-1}\hat b_{\eta y}\vert\vert - \vert\vert L_\text{post}^{*-1}\hat b_{\eta y}\vert\vert  \right)
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mrow>
+                      <mml:mo>log</mml:mo>
+                      <mml:mi>π</mml:mi>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mi>η</mml:mi>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mover>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mo>,</mml:mo>
+                        <mml:msub>
+                          <mml:mi>τ</mml:mi>
+                          <mml:mi>η</mml:mi>
+                        </mml:msub>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                      <mml:mo>−</mml:mo>
+                      <mml:mo>log</mml:mo>
+                      <mml:mi>π</mml:mi>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mi>η</mml:mi>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mover>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo accent="true">̂</mml:mo>
+                        </mml:mover>
+                        <mml:mo>,</mml:mo>
+                        <mml:msubsup>
+                          <mml:mi>τ</mml:mi>
+                          <mml:mi>η</mml:mi>
+                          <mml:mo>*</mml:mo>
+                        </mml:msubsup>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                      <mml:mo>=</mml:mo>
+                      <mml:munderover>
+                        <mml:mo>∑</mml:mo>
+                        <mml:mrow>
+                          <mml:mi>i</mml:mi>
+                          <mml:mo>=</mml:mo>
+                          <mml:mn>1</mml:mn>
+                        </mml:mrow>
+                        <mml:mrow>
+                          <mml:mn>3</mml:mn>
+                          <mml:mi>n</mml:mi>
+                        </mml:mrow>
+                      </mml:munderover>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mrow>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">[</mml:mo>
+                            <mml:mi>i</mml:mi>
+                            <mml:mo>,</mml:mo>
+                            <mml:mi>i</mml:mi>
+                            <mml:mo stretchy="true" form="postfix">]</mml:mo>
+                          </mml:mrow>
+                          <mml:mtext mathvariant="normal">post</mml:mtext>
+                        </mml:mrow>
+                      </mml:msub>
+                      <mml:mo>−</mml:mo>
+                      <mml:munderover>
+                        <mml:mo>∑</mml:mo>
+                        <mml:mrow>
+                          <mml:mi>i</mml:mi>
+                          <mml:mo>=</mml:mo>
+                          <mml:mn>1</mml:mn>
+                        </mml:mrow>
+                        <mml:mrow>
+                          <mml:mn>3</mml:mn>
+                          <mml:mi>n</mml:mi>
+                        </mml:mrow>
+                      </mml:munderover>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mrow>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">[</mml:mo>
+                            <mml:mi>i</mml:mi>
+                            <mml:mo>,</mml:mo>
+                            <mml:mi>i</mml:mi>
+                            <mml:mo stretchy="true" form="postfix">]</mml:mo>
+                          </mml:mrow>
+                          <mml:mtext mathvariant="normal">post</mml:mtext>
+                        </mml:mrow>
+                        <mml:mo>*</mml:mo>
+                      </mml:msubsup>
+                      <mml:mo>−</mml:mo>
+                      <mml:mfrac>
+                        <mml:mn>1</mml:mn>
+                        <mml:mn>2</mml:mn>
+                      </mml:mfrac>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:msubsup>
+                          <mml:mi>L</mml:mi>
+                          <mml:mtext mathvariant="normal">post</mml:mtext>
+                          <mml:mrow>
+                            <mml:mi>−</mml:mi>
+                            <mml:mn>1</mml:mn>
+                          </mml:mrow>
+                        </mml:msubsup>
+                        <mml:msub>
+                          <mml:mover>
+                            <mml:mi>b</mml:mi>
+                            <mml:mo accent="true">̂</mml:mo>
+                          </mml:mover>
+                          <mml:mrow>
+                            <mml:mi>η</mml:mi>
+                            <mml:mi>y</mml:mi>
+                          </mml:mrow>
+                        </mml:msub>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mi>−</mml:mi>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:msubsup>
+                          <mml:mi>L</mml:mi>
+                          <mml:mtext mathvariant="normal">post</mml:mtext>
+                          <mml:mrow>
+                            <mml:mi>*</mml:mi>
+                            <mml:mo>−</mml:mo>
+                            <mml:mn>1</mml:mn>
+                          </mml:mrow>
+                        </mml:msubsup>
+                        <mml:msub>
+                          <mml:mover>
+                            <mml:mi>b</mml:mi>
+                            <mml:mo accent="true">̂</mml:mo>
+                          </mml:mover>
+                          <mml:mrow>
+                            <mml:mi>η</mml:mi>
+                            <mml:mi>y</mml:mi>
+                          </mml:mrow>
+                        </mml:msub>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                        <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                      </mml:mrow>
+                    </mml:mrow>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+            <p>Alltogether, this leaves us with:</p>
+            <p>
+              <disp-formula>
+                <alternatives>
+                  <tex-math><![CDATA[
+        \begin{aligned}
+        \log \pi(\tau_\eta \vert \hat \eta) - \log \pi(\tau_\eta^* \vert \hat \eta) &= 
+        \left( \log\pi(\tau_\eta) - \log\pi(\tau_\eta^*) \right)  \\ 
+        &+ \frac{n}{2}\sum_{i=1}^3\left( \log \tau_i - \log \tau_i^*\right) \\
+        &+ \sum_{i=1}^{3n} L_{[i,i] \text{post}} - \sum_{i=1}^{3n}L_{[i,i] \text{post}}^* \\
+        &- \frac12\left( \vert\vert L_\text{post}^{-1}\hat b_{\eta y}\vert\vert - \vert\vert L_\text{post}^{*-1}\hat b_{\eta y}\vert\vert  \right)
+        \end{aligned} 
+        ]]></tex-math>
+                  <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                    <mml:mtable>
+                      <mml:mtr>
+                        <mml:mtd columnalign="right" style="text-align: right">
+                          <mml:mo>log</mml:mo>
+                          <mml:mi>π</mml:mi>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                            <mml:msub>
+                              <mml:mi>τ</mml:mi>
+                              <mml:mi>η</mml:mi>
+                            </mml:msub>
+                            <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                            <mml:mover>
+                              <mml:mi>η</mml:mi>
+                              <mml:mo accent="true">̂</mml:mo>
+                            </mml:mover>
+                            <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                          </mml:mrow>
+                          <mml:mo>−</mml:mo>
+                          <mml:mo>log</mml:mo>
+                          <mml:mi>π</mml:mi>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                            <mml:msubsup>
+                              <mml:mi>τ</mml:mi>
+                              <mml:mi>η</mml:mi>
+                              <mml:mo>*</mml:mo>
+                            </mml:msubsup>
+                            <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                            <mml:mover>
+                              <mml:mi>η</mml:mi>
+                              <mml:mo accent="true">̂</mml:mo>
+                            </mml:mover>
+                            <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                          </mml:mrow>
+                        </mml:mtd>
+                        <mml:mtd columnalign="left" style="text-align: left">
+                          <mml:mo>=</mml:mo>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                            <mml:mo>log</mml:mo>
+                            <mml:mi>π</mml:mi>
+                            <mml:mrow>
+                              <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                              <mml:msub>
+                                <mml:mi>τ</mml:mi>
+                                <mml:mi>η</mml:mi>
+                              </mml:msub>
+                              <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                            </mml:mrow>
+                            <mml:mo>−</mml:mo>
+                            <mml:mo>log</mml:mo>
+                            <mml:mi>π</mml:mi>
+                            <mml:mrow>
+                              <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                              <mml:msubsup>
+                                <mml:mi>τ</mml:mi>
+                                <mml:mi>η</mml:mi>
+                                <mml:mo>*</mml:mo>
+                              </mml:msubsup>
+                              <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                            </mml:mrow>
+                            <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                          </mml:mrow>
+                        </mml:mtd>
+                      </mml:mtr>
+                      <mml:mtr>
+                        <mml:mtd columnalign="right" style="text-align: right"/>
+                        <mml:mtd columnalign="left" style="text-align: left">
+                          <mml:mi>+</mml:mi>
+                          <mml:mfrac>
+                            <mml:mi>n</mml:mi>
+                            <mml:mn>2</mml:mn>
+                          </mml:mfrac>
+                          <mml:munderover>
+                            <mml:mo>∑</mml:mo>
+                            <mml:mrow>
+                              <mml:mi>i</mml:mi>
+                              <mml:mo>=</mml:mo>
+                              <mml:mn>1</mml:mn>
+                            </mml:mrow>
+                            <mml:mn>3</mml:mn>
+                          </mml:munderover>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                            <mml:mo>log</mml:mo>
+                            <mml:msub>
+                              <mml:mi>τ</mml:mi>
+                              <mml:mi>i</mml:mi>
+                            </mml:msub>
+                            <mml:mo>−</mml:mo>
+                            <mml:mo>log</mml:mo>
+                            <mml:msubsup>
+                              <mml:mi>τ</mml:mi>
+                              <mml:mi>i</mml:mi>
+                              <mml:mo>*</mml:mo>
+                            </mml:msubsup>
+                            <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                          </mml:mrow>
+                        </mml:mtd>
+                      </mml:mtr>
+                      <mml:mtr>
+                        <mml:mtd columnalign="right" style="text-align: right"/>
+                        <mml:mtd columnalign="left" style="text-align: left">
+                          <mml:mi>+</mml:mi>
+                          <mml:munderover>
+                            <mml:mo>∑</mml:mo>
+                            <mml:mrow>
+                              <mml:mi>i</mml:mi>
+                              <mml:mo>=</mml:mo>
+                              <mml:mn>1</mml:mn>
+                            </mml:mrow>
+                            <mml:mrow>
+                              <mml:mn>3</mml:mn>
+                              <mml:mi>n</mml:mi>
+                            </mml:mrow>
+                          </mml:munderover>
+                          <mml:msub>
+                            <mml:mi>L</mml:mi>
+                            <mml:mrow>
+                              <mml:mrow>
+                                <mml:mo stretchy="true" form="prefix">[</mml:mo>
+                                <mml:mi>i</mml:mi>
+                                <mml:mo>,</mml:mo>
+                                <mml:mi>i</mml:mi>
+                                <mml:mo stretchy="true" form="postfix">]</mml:mo>
+                              </mml:mrow>
+                              <mml:mtext mathvariant="normal">post</mml:mtext>
+                            </mml:mrow>
+                          </mml:msub>
+                          <mml:mo>−</mml:mo>
+                          <mml:munderover>
+                            <mml:mo>∑</mml:mo>
+                            <mml:mrow>
+                              <mml:mi>i</mml:mi>
+                              <mml:mo>=</mml:mo>
+                              <mml:mn>1</mml:mn>
+                            </mml:mrow>
+                            <mml:mrow>
+                              <mml:mn>3</mml:mn>
+                              <mml:mi>n</mml:mi>
+                            </mml:mrow>
+                          </mml:munderover>
+                          <mml:msubsup>
+                            <mml:mi>L</mml:mi>
+                            <mml:mrow>
+                              <mml:mrow>
+                                <mml:mo stretchy="true" form="prefix">[</mml:mo>
+                                <mml:mi>i</mml:mi>
+                                <mml:mo>,</mml:mo>
+                                <mml:mi>i</mml:mi>
+                                <mml:mo stretchy="true" form="postfix">]</mml:mo>
+                              </mml:mrow>
+                              <mml:mtext mathvariant="normal">post</mml:mtext>
+                            </mml:mrow>
+                            <mml:mo>*</mml:mo>
+                          </mml:msubsup>
+                        </mml:mtd>
+                      </mml:mtr>
+                      <mml:mtr>
+                        <mml:mtd columnalign="right" style="text-align: right"/>
+                        <mml:mtd columnalign="left" style="text-align: left">
+                          <mml:mi>−</mml:mi>
+                          <mml:mfrac>
+                            <mml:mn>1</mml:mn>
+                            <mml:mn>2</mml:mn>
+                          </mml:mfrac>
+                          <mml:mrow>
+                            <mml:mo stretchy="true" form="prefix">(</mml:mo>
+                            <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                            <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                            <mml:msubsup>
+                              <mml:mi>L</mml:mi>
+                              <mml:mtext mathvariant="normal">post</mml:mtext>
+                              <mml:mrow>
+                                <mml:mi>−</mml:mi>
+                                <mml:mn>1</mml:mn>
+                              </mml:mrow>
+                            </mml:msubsup>
+                            <mml:msub>
+                              <mml:mover>
+                                <mml:mi>b</mml:mi>
+                                <mml:mo accent="true">̂</mml:mo>
+                              </mml:mover>
+                              <mml:mrow>
+                                <mml:mi>η</mml:mi>
+                                <mml:mi>y</mml:mi>
+                              </mml:mrow>
+                            </mml:msub>
+                            <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                            <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                            <mml:mi>−</mml:mi>
+                            <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                            <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                            <mml:msubsup>
+                              <mml:mi>L</mml:mi>
+                              <mml:mtext mathvariant="normal">post</mml:mtext>
+                              <mml:mrow>
+                                <mml:mi>*</mml:mi>
+                                <mml:mo>−</mml:mo>
+                                <mml:mn>1</mml:mn>
+                              </mml:mrow>
+                            </mml:msubsup>
+                            <mml:msub>
+                              <mml:mover>
+                                <mml:mi>b</mml:mi>
+                                <mml:mo accent="true">̂</mml:mo>
+                              </mml:mover>
+                              <mml:mrow>
+                                <mml:mi>η</mml:mi>
+                                <mml:mi>y</mml:mi>
+                              </mml:mrow>
+                            </mml:msub>
+                            <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                            <mml:mo stretchy="false" form="postfix">|</mml:mo>
+                            <mml:mo stretchy="true" form="postfix">)</mml:mo>
+                          </mml:mrow>
+                        </mml:mtd>
+                      </mml:mtr>
+                    </mml:mtable>
+                  </mml:math>
+                </alternatives>
+              </disp-formula>
+            </p>
+          </sec>
+        </sec>
         <sec id="latent-field-sampling">
           <title>Latent Field Sampling</title>
           <p>The latent field is sampled from the conditional normal
@@ -1547,6 +3241,98 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
               </alternatives>
             </disp-formula>
           </p>
+        </sec>
+        <sec id="algorithm">
+          <title>Algorithm</title>
+          <p>All in all, this leaves us with the following steps to
+      efficiently draw from the posterior:</p>
+          <p>
+            <bold>Initialization</bold>
+          </p>
+          <list list-type="order">
+            <list-item>
+              <p>Initialize <inline-formula><alternatives><tex-math><![CDATA[\tau_\eta]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub></mml:math></alternatives></inline-formula>
+          and <inline-formula><alternatives><tex-math><![CDATA[\eta]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mi>η</mml:mi></mml:math></alternatives></inline-formula>
+          to sensible values.</p>
+            </list-item>
+            <list-item>
+              <p>Compute <inline-formula><alternatives><tex-math><![CDATA[L_\text{post}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub></mml:math></alternatives></inline-formula>
+          using Block-Cholesky algorithm and store it.</p>
+            </list-item>
+            <list-item>
+              <p>Compute <inline-formula><alternatives><tex-math><![CDATA[y]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mi>y</mml:mi></mml:math></alternatives></inline-formula>
+          by solving <inline-formula><alternatives><tex-math><![CDATA[L_\text{post}y = \hat b_{\eta y}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msub><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub><mml:mi>y</mml:mi><mml:mo>=</mml:mo><mml:msub><mml:mover><mml:mi>b</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mrow><mml:mi>η</mml:mi><mml:mi>y</mml:mi></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula>
+          and store it.</p>
+            </list-item>
+            <list-item>
+              <p>Compute <inline-formula><alternatives><tex-math><![CDATA[\mu_\text{post}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>μ</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub></mml:math></alternatives></inline-formula>
+          by solving <inline-formula><alternatives><tex-math><![CDATA[L_\text{post}^T\mu_\text{post} = y]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msubsup><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext><mml:mi>T</mml:mi></mml:msubsup><mml:msub><mml:mi>μ</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub><mml:mo>=</mml:mo><mml:mi>y</mml:mi></mml:mrow></mml:math></alternatives></inline-formula>
+          and store it.</p>
+            </list-item>
+            <list-item>
+              <p>Compute <inline-formula><alternatives><tex-math><![CDATA[\frac12\log\vert Q_\text{post}\vert = \sum_{i=1}^{3n} L_{[i,i] \text{post}}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mfrac><mml:mn>1</mml:mn><mml:mn>2</mml:mn></mml:mfrac><mml:mo>log</mml:mo><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:msub><mml:mi>Q</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:mo>=</mml:mo><mml:msubsup><mml:mo>∑</mml:mo><mml:mrow><mml:mi>i</mml:mi><mml:mo>=</mml:mo><mml:mn>1</mml:mn></mml:mrow><mml:mrow><mml:mn>3</mml:mn><mml:mi>n</mml:mi></mml:mrow></mml:msubsup><mml:msub><mml:mi>L</mml:mi><mml:mrow><mml:mrow><mml:mo stretchy="true" form="prefix">[</mml:mo><mml:mi>i</mml:mi><mml:mo>,</mml:mo><mml:mi>i</mml:mi><mml:mo stretchy="true" form="postfix">]</mml:mo></mml:mrow><mml:mtext mathvariant="normal">post</mml:mtext></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula>
+          and store it</p>
+            </list-item>
+          </list>
+          <p>
+            <bold>Sampling</bold>
+          </p>
+          <p>For each iteration:</p>
+          <list list-type="order">
+            <list-item>
+              <p>Propose <inline-formula><alternatives><tex-math><![CDATA[\tau_\eta^*]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>τ</mml:mi><mml:mi>η</mml:mi><mml:mo>*</mml:mo></mml:msubsup></mml:math></alternatives></inline-formula></p>
+            </list-item>
+            <list-item>
+              <p>Compute <inline-formula><alternatives><tex-math><![CDATA[L_\text{post}^*]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext><mml:mo>*</mml:mo></mml:msubsup></mml:math></alternatives></inline-formula>
+          using Block-Cholesky algorithm and store it.</p>
+            </list-item>
+            <list-item>
+              <p>Compute <inline-formula><alternatives><tex-math><![CDATA[y^*]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msup><mml:mi>y</mml:mi><mml:mo>*</mml:mo></mml:msup></mml:math></alternatives></inline-formula>
+          by solving <inline-formula><alternatives><tex-math><![CDATA[L_\text{post}^*y = \hat b_{\eta y}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msubsup><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext><mml:mo>*</mml:mo></mml:msubsup><mml:mi>y</mml:mi><mml:mo>=</mml:mo><mml:msub><mml:mover><mml:mi>b</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mrow><mml:mi>η</mml:mi><mml:mi>y</mml:mi></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula>
+          and store it.</p>
+            </list-item>
+            <list-item>
+              <p>Compute <inline-formula><alternatives><tex-math><![CDATA[\frac12\log\vert Q_\text{post}^*\vert = \sum_{i=1}^{3n} L_{[i,i] \text{post}}^*]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mfrac><mml:mn>1</mml:mn><mml:mn>2</mml:mn></mml:mfrac><mml:mo>log</mml:mo><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:msubsup><mml:mi>Q</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext><mml:mo>*</mml:mo></mml:msubsup><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:mo>=</mml:mo><mml:msubsup><mml:mo>∑</mml:mo><mml:mrow><mml:mi>i</mml:mi><mml:mo>=</mml:mo><mml:mn>1</mml:mn></mml:mrow><mml:mrow><mml:mn>3</mml:mn><mml:mi>n</mml:mi></mml:mrow></mml:msubsup><mml:msubsup><mml:mi>L</mml:mi><mml:mrow><mml:mrow><mml:mo stretchy="true" form="prefix">[</mml:mo><mml:mi>i</mml:mi><mml:mo>,</mml:mo><mml:mi>i</mml:mi><mml:mo stretchy="true" form="postfix">]</mml:mo></mml:mrow><mml:mtext mathvariant="normal">post</mml:mtext></mml:mrow><mml:mo>*</mml:mo></mml:msubsup></mml:mrow></mml:math></alternatives></inline-formula>
+          and store it</p>
+            </list-item>
+            <list-item>
+              <p>Compute the log-acceptance ratio
+          <inline-formula><alternatives><tex-math><![CDATA[\log \pi(\tau_\eta \vert \hat \eta) - \log(\tau_\eta^*\vert \hat \eta)]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mo>log</mml:mo><mml:mi>π</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:msub><mml:mi>τ</mml:mi><mml:mi>η</mml:mi></mml:msub><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:mover><mml:mi>η</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mo>−</mml:mo><mml:mo>log</mml:mo><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:msubsup><mml:mi>τ</mml:mi><mml:mi>η</mml:mi><mml:mo>*</mml:mo></mml:msubsup><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:mover><mml:mi>η</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula>
+          and accept/reject the proposed <inline-formula><alternatives><tex-math><![CDATA[\tau_\eta^*]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>τ</mml:mi><mml:mi>η</mml:mi><mml:mo>*</mml:mo></mml:msubsup></mml:math></alternatives></inline-formula></p>
+            </list-item>
+            <list-item>
+              <p>If <inline-formula><alternatives><tex-math><![CDATA[\tau_\eta^*]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>τ</mml:mi><mml:mi>η</mml:mi><mml:mo>*</mml:mo></mml:msubsup></mml:math></alternatives></inline-formula>
+          is accepted:</p>
+              <list list-type="roman-lower">
+                <list-item>
+                  <p>Set <inline-formula><alternatives><tex-math><![CDATA[L_\text{post} = L_\text{post}^*]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msub><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub><mml:mo>=</mml:mo><mml:msubsup><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext><mml:mo>*</mml:mo></mml:msubsup></mml:mrow></mml:math></alternatives></inline-formula>,
+              <inline-formula><alternatives><tex-math><![CDATA[y = y^*]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>y</mml:mi><mml:mo>=</mml:mo><mml:msup><mml:mi>y</mml:mi><mml:mo>*</mml:mo></mml:msup></mml:mrow></mml:math></alternatives></inline-formula>
+              and <inline-formula><alternatives><tex-math><![CDATA[\frac12\log\vert Q_\text{post}\vert = \frac12\log\vert Q_\text{post}^*\vert]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mfrac><mml:mn>1</mml:mn><mml:mn>2</mml:mn></mml:mfrac><mml:mo>log</mml:mo><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:msub><mml:mi>Q</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:mo>=</mml:mo><mml:mfrac><mml:mn>1</mml:mn><mml:mn>2</mml:mn></mml:mfrac><mml:mo>log</mml:mo><mml:mo stretchy="false" form="postfix">|</mml:mo><mml:msubsup><mml:mi>Q</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext><mml:mo>*</mml:mo></mml:msubsup><mml:mo stretchy="false" form="postfix">|</mml:mo></mml:mrow></mml:math></alternatives></inline-formula></p>
+                </list-item>
+                <list-item>
+                  <p>Compute <inline-formula><alternatives><tex-math><![CDATA[\mu_\text{post}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>μ</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub></mml:math></alternatives></inline-formula>
+              by solving <inline-formula><alternatives><tex-math><![CDATA[L_\text{post}^T\mu_\text{post} = y]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msubsup><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext><mml:mi>T</mml:mi></mml:msubsup><mml:msub><mml:mi>μ</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub><mml:mo>=</mml:mo><mml:mi>y</mml:mi></mml:mrow></mml:math></alternatives></inline-formula>
+              and store it.</p>
+                </list-item>
+                <list-item>
+                  <p>Sample from the latent field using the new values of
+              <inline-formula><alternatives><tex-math><![CDATA[\mu_\text{post}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>μ</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub></mml:math></alternatives></inline-formula>
+              and <inline-formula><alternatives><tex-math><![CDATA[L_\text{post}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub></mml:math></alternatives></inline-formula></p>
+                </list-item>
+              </list>
+            </list-item>
+            <list-item>
+              <p>If <inline-formula><alternatives><tex-math><![CDATA[\tau_\eta^*]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>τ</mml:mi><mml:mi>η</mml:mi><mml:mo>*</mml:mo></mml:msubsup></mml:math></alternatives></inline-formula>
+          is rejected:</p>
+              <list list-type="roman-lower">
+                <list-item>
+                  <p>Sample from the latent field using the stored values of
+              <inline-formula><alternatives><tex-math><![CDATA[\mu_\text{post}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>μ</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub></mml:math></alternatives></inline-formula>
+              and <inline-formula><alternatives><tex-math><![CDATA[L_\text{post}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub></mml:math></alternatives></inline-formula></p>
+                </list-item>
+              </list>
+            </list-item>
+          </list>
         </sec>
       </sec>
     </sec>

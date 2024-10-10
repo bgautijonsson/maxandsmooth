@@ -1,9 +1,6 @@
 project:
   type: manuscript
   output-dir: docs
-  preview:
-    port: 4200
-    watch-inputs: true
 
 manuscript:
   article: index.qmd
