@@ -1,5 +1,5 @@
-PKG_CXXFLAGS = $(shell pkg-config --cflags fftw3) $(SHLIB_OPENMP_CXXFLAGS)
-PKG_LIBS = $(shell pkg-config --libs fftw3) $(SHLIB_OPENMP_CXXFLAGS)
+PKG_CXXFLAGS = $(shell pkg-config --cflags) $(SHLIB_OPENMP_CXXFLAGS)
+PKG_LIBS = $(shell pkg-config --libs) $(SHLIB_OPENMP_CXXFLAGS)
 
 # Adding nlopt
 PKG_CPPFLAGS += -I/opt/homebrew/opt/nlopt/include
