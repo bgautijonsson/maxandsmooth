@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Brynjólfur Gauti Guðrúnar Jónsson">
-<meta name="dcterms.date" content="2024-10-10">
+<meta name="dcterms.date" content="2024-10-13">
 
 <title>Applying Max-and-Smooth to the UKCP data</title>
 <style>
@@ -74,10 +74,10 @@ window.Quarto = {
 
 <meta name="citation_title" content="Applying Max-and-Smooth to the UKCP data">
 <meta name="citation_author" content="Brynjólfur Gauti Guðrúnar Jónsson">
-<meta name="citation_publication_date" content="2024-10-10">
-<meta name="citation_cover_date" content="2024-10-10">
+<meta name="citation_publication_date" content="2024-10-13">
+<meta name="citation_cover_date" content="2024-10-13">
 <meta name="citation_year" content="2024">
-<meta name="citation_online_date" content="2024-10-10">
+<meta name="citation_online_date" content="2024-10-13">
 <meta name="citation_language" content="en">
 </head>
 
@@ -105,7 +105,7 @@ window.Quarto = {
                 <div>
             <div class="quarto-title-meta-heading">Published</div>
             <div class="quarto-title-meta-contents">
-              <p class="date">October 10, 2024</p>
+              <p class="date">October 13, 2024</p>
             </div>
           </div>
           
@@ -310,7 +310,9 @@ Q_\eta = \begin{bmatrix}
 \]</span></p>
 <p>where</p>
 <p><span class="math display">\[
-Q_{\text{prior}} = \begin{bmatrix}
+\begin{aligned}
+Q_{\text{prior}} &amp;= I \otimes R + R \otimes I \\
+R &amp;= \begin{bmatrix}
 2 &amp; -1 \\
 -1 &amp; 2 &amp; -1 \\
 &amp; -1 &amp; 2 &amp; -1 \\
@@ -319,6 +321,7 @@ Q_{\text{prior}} = \begin{bmatrix}
 &amp; &amp; &amp; &amp; -1 &amp; 2 &amp; -1 \\
 &amp; &amp; &amp; &amp; &amp; -1 &amp; 2
 \end{bmatrix}
+\end{aligned}
 \]</span></p>
 <p>and <span class="math inline">\(\tau_\eta = \left(\tau_\psi, \tau_\tau, \tau_\phi\right)^T\)</span> are the hyperparameters controlling the strength of spatial dependence for each parameter.</p>
 </section>
@@ -529,29 +532,70 @@ Q_{\tau\psi} &amp; Q_{\tau\tau} + \tau_\tau Q_\text{prior} &amp; Q_{\tau\phi} \\
 Q_{\phi\psi} &amp; Q_{\phi\tau} &amp; Q_{\phi\phi} + \tau_\phi Q_\text{prior},
 \end{bmatrix}
 \]</span></p>
-<p>where each block on the diagonal has bandwidth 3 and all the off-diagonal blocks are diagonal matrices. Keep in mind that since the off-diagonal blocks are diagonal matrices we have that <span class="math inline">\(Q_{\psi\tau} = Q_{\tau\psi}\)</span>, <span class="math inline">\(Q_{\psi\phi} = Q_{\phi\psi}\)</span> and <span class="math inline">\(Q_{\tau\phi} = Q_{\phi\tau}\)</span>. We can thus calculate the Cholesky decomposition</p>
+<p>where each block on the diagonal has bandwidth 3 and all the off-diagonal blocks are diagonal matrices. Keep in mind that since the off-diagonal blocks are diagonal matrices we have that <span class="math inline">\(Q_{\psi\tau} = Q_{\tau\psi}\)</span>, <span class="math inline">\(Q_{\psi\phi} = Q_{\phi\psi}\)</span> and <span class="math inline">\(Q_{\tau\phi} = Q_{\phi\tau}\)</span>.</p>
+<p>We want to calculate the Cholesky decomposition <span class="math inline">\(Q_\text{post} = L_\text{post}L_\text{post}^T\)</span>, where</p>
 <p><span class="math display">\[
-L_\text{post} = \begin{bmatrix}
+\begin{aligned}
+Q_\text{post} &amp;= \begin{bmatrix}
+Q_{\psi\psi} + \tau_\psi Q_\text{prior} &amp; Q_{\psi\tau} &amp; Q_{\psi\phi} \\
+Q_{\tau\psi} &amp; Q_{\tau\tau} + \tau_\tau Q_\text{prior} &amp; Q_{\tau\phi} \\
+Q_{\phi\psi} &amp; Q_{\phi\tau} &amp; Q_{\phi\phi} + \tau_\phi Q_\text{prior},
+\end{bmatrix} \\
+&amp;=
+\begin{bmatrix}
 L_{11} &amp; 0 &amp; 0 \\
 L_{21} &amp; L_{22} &amp; 0 \\
 L_{31} &amp; L_{32} &amp; L_{33},
 \end{bmatrix}
+\begin{bmatrix}
+L_{11} &amp; L_{21}^T &amp; L_{31}^T \\
+0 &amp; L_{22} &amp; L_{32}^T \\
+0 &amp; 0 &amp; L_{33},
+\end{bmatrix} \\
+&amp;= \begin{bmatrix}
+L_{11}L_{11}^T &amp; L_{11}L_{21}^T &amp; L_{11}L_{31}^T  \\
+L_{21}L_{11}^T &amp; L_{21}L_{21}^T + L_{22}L_{22}^T &amp; L_{21}L_{31} + L_{22}L_{32}^T \\
+L_{31}L_{11}^T &amp; L_{31}L_{21}^T + L_{32}L_{22}^T &amp; L_{31}L_{31}^T + L_{32}L_{32}^T + L_{33}L_{33}^T
+\end{bmatrix}.
+\end{aligned}
 \]</span></p>
-<p>efficiently using a block-Cholesky factorization:</p>
+<p>We do this efficiently using a block-Cholesky factorization. First, let’s write up how the blocks of <span class="math inline">\(L_\text{post}\)</span> connect to the blocks of <span class="math inline">\(Q_\text{post}\)</span>:</p>
+<p><span class="math display">\[
+\begin{aligned}
+Q_{\psi\psi} + \tau_\psi Q_\text{prior} &amp;= L_{11}L_{11}^T \\
+Q_{\psi\tau} &amp;=L_{21}L_{11}^T = L_{11}L_{21}^T \\
+Q_{\psi\phi} &amp;= L_{31}L_{11}^T = L_{11}L_{31}^T \\
+Q_{\tau\tau} + \tau_\tau Q_\text{prior} &amp;= L_{21}L_{21}^T + L_{22}L_{22}^T \\
+Q_{\tau\phi} &amp;= L_{31}L_{21}^T + L_{32}L_{22}^T = L_{21}L_{31} + L_{22}L_{32}^T \\
+Q_{\phi\phi} &amp;= L_{31}L_{31}^T + L_{32}L_{32}^T + L_{33}L_{33}^T
+\end{aligned}
+\]</span></p>
+<p>Re-arranging, we can write out our efficient block-Cholesky algorithm:</p>
 <ol type="1">
 <li><span class="math inline">\(L_{11} = \mathrm{Chol}(Q_{\psi\psi} + \tau_\psi Q_\text{prior})\)</span></li>
-<li><span class="math inline">\(L_{21} = Q_{\psi\tau}L_{11}^{-T}\)</span></li>
-<li><span class="math inline">\(L_{31} = Q_{\psi\phi}L_{11}^{-T}\)</span></li>
+<li><span class="math inline">\(L_{21} = Q_{\psi\tau}L_{11}^{-T}\)</span>
+<ul>
+<li>Calculate by solving <span class="math inline">\(L_{11}L_{21}^T = Q_{\psi\tau}\)</span></li>
+</ul></li>
+<li><span class="math inline">\(L_{31} = Q_{\psi\phi}L_{11}^{-T}\)</span>
+<ul>
+<li>Calculate by solving <span class="math inline">\(L_{11}L_{31}^T = Q_{\psi\tau}\)</span></li>
+</ul></li>
 <li><span class="math inline">\(L_{22} = \mathrm{Chol}(S_{22})\)</span>
 <ul>
 <li><span class="math inline">\(S_{22} = \left(Q_{\tau\tau} + \tau_\tau Q_\text{prior}\right) - L_{21}L_{21}^T\)</span></li>
 </ul></li>
-<li><span class="math inline">\(L_{32} = \left(Q_{\tau\phi} - L_{31}L_{21}^T\right)L_{22}^{-T}\)</span></li>
+<li><span class="math inline">\(L_{32} = \left(Q_{\tau\phi} - L_{31}L_{21}^T\right)L_{22}^{-T}\)</span>
+<ul>
+<li>Calculate by solving <span class="math inline">\(L_{22}L_{32}^T = Q_{\tau\phi} - L_{31}L_{21}^T\)</span></li>
+</ul></li>
 <li><span class="math inline">\(L_{33} = \mathrm{Chol}(S_{33})\)</span>
 <ul>
 <li><span class="math inline">\(S_{33} = \left( Q_{\phi\phi} + \tau_\phi Q_\text{prior} \right) - L_{31}L_{31}^T - L_{32}L_{32}^T\)</span></li>
 </ul></li>
 </ol>
+<p>According to Theorem 4.3.1 in Golub and Van Loan, if <span class="math inline">\(Q\)</span> is a banded matrix with bandwidth b, then <span class="math inline">\(L\)</span> will also have lower bandwidth b. Thus, all our Cholesky blocks will have low bandwidth: The diagonal blocks will have lower bandwidth 2 and the off-diagonal blocks will be diagonal matrices (bandwidth 1).</p>
+<p>The Cholesky decomposition of an <span class="math inline">\(n \times n\)</span> banded matrix with bandwidth <span class="math inline">\(p &lt;&lt; n\)</span> involves <span class="math inline">\(n(p^2 + 3p)\)</span>. Similarly, forward and backward substitution for banded matrices with <span class="math inline">\(p &lt;&lt; n\)</span> requires about <span class="math inline">\(2np\)</span> flops. Thus, the major factor will be the bandwidth of <span class="math inline">\(Q_\text{prior}\)</span>, which has bandwidth <span class="math inline">\(\sqrt{n}\)</span> as defined in the manuscript. Overall, this means we can compute <span class="math inline">\(L_{post}\)</span> in <span class="math inline">\(O(n^{1.5})\)</span> time using a block-Cholesky factorization.</p>
 </section>
 <section id="forward-substitution-solving-ly-b" class="level2">
 <h2 class="anchored" data-anchor-id="forward-substitution-solving-ly-b">Forward Substitution: Solving <span class="math inline">\(Ly = b\)</span></h2>

@@ -168,7 +168,9 @@ $$
 where
 
 $$
-Q_{\text{prior}} = \begin{bmatrix}
+\begin{aligned}
+Q_{\text{prior}} &= I \otimes R + R \otimes I \\
+R &= \begin{bmatrix}
 2 & -1 \\
 -1 & 2 & -1 \\
 & -1 & 2 & -1 \\
@@ -177,6 +179,7 @@ Q_{\text{prior}} = \begin{bmatrix}
 & & & & -1 & 2 & -1 \\
 & & & & & -1 & 2
 \end{bmatrix}
+\end{aligned}
 $$
 
 and $\tau_\eta = \left(\tau_\psi, \tau_\tau, \tau_\phi\right)^T$ are the hyperparameters controlling the strength of spatial dependence for each parameter.
@@ -426,26 +429,66 @@ Q_{\phi\psi} & Q_{\phi\tau} & Q_{\phi\phi} + \tau_\phi Q_\text{prior},
 \end{bmatrix}
 $$
 
-where each block on the diagonal has bandwidth 3 and all the off-diagonal blocks are diagonal matrices. Keep in mind that since the off-diagonal blocks are diagonal matrices we have that $Q_{\psi\tau} = Q_{\tau\psi}$, $Q_{\psi\phi} = Q_{\phi\psi}$ and $Q_{\tau\phi} = Q_{\phi\tau}$. We can thus calculate the Cholesky decomposition
+where each block on the diagonal has bandwidth 3 and all the off-diagonal blocks are diagonal matrices. Keep in mind that since the off-diagonal blocks are diagonal matrices we have that $Q_{\psi\tau} = Q_{\tau\psi}$, $Q_{\psi\phi} = Q_{\phi\psi}$ and $Q_{\tau\phi} = Q_{\phi\tau}$. 
+
+We want to calculate the Cholesky decomposition $Q_\text{post} = L_\text{post}L_\text{post}^T$, where
 
 $$
-L_\text{post} = \begin{bmatrix}
+\begin{aligned}
+Q_\text{post} &= \begin{bmatrix}
+Q_{\psi\psi} + \tau_\psi Q_\text{prior} & Q_{\psi\tau} & Q_{\psi\phi} \\
+Q_{\tau\psi} & Q_{\tau\tau} + \tau_\tau Q_\text{prior} & Q_{\tau\phi} \\
+Q_{\phi\psi} & Q_{\phi\tau} & Q_{\phi\phi} + \tau_\phi Q_\text{prior},
+\end{bmatrix} \\
+&=
+\begin{bmatrix}
 L_{11} & 0 & 0 \\
 L_{21} & L_{22} & 0 \\
 L_{31} & L_{32} & L_{33},
 \end{bmatrix}
+\begin{bmatrix}
+L_{11} & L_{21}^T & L_{31}^T \\
+0 & L_{22} & L_{32}^T \\
+0 & 0 & L_{33},
+\end{bmatrix} \\
+&= \begin{bmatrix}
+L_{11}L_{11}^T & L_{11}L_{21}^T & L_{11}L_{31}^T  \\
+L_{21}L_{11}^T & L_{21}L_{21}^T + L_{22}L_{22}^T & L_{21}L_{31} + L_{22}L_{32}^T \\
+L_{31}L_{11}^T & L_{31}L_{21}^T + L_{32}L_{22}^T & L_{31}L_{31}^T + L_{32}L_{32}^T + L_{33}L_{33}^T
+\end{bmatrix}.
+\end{aligned}
 $$
 
-efficiently using a block-Cholesky factorization:
+We do this efficiently using a block-Cholesky factorization. First, let's write up how the blocks of $L_\text{post}$ connect to the blocks of $Q_\text{post}$:
+
+$$
+\begin{aligned}
+Q_{\psi\psi} + \tau_\psi Q_\text{prior} &= L_{11}L_{11}^T \\
+Q_{\psi\tau} &=L_{21}L_{11}^T = L_{11}L_{21}^T \\
+Q_{\psi\phi} &= L_{31}L_{11}^T = L_{11}L_{31}^T \\
+Q_{\tau\tau} + \tau_\tau Q_\text{prior} &= L_{21}L_{21}^T + L_{22}L_{22}^T \\
+Q_{\tau\phi} &= L_{31}L_{21}^T + L_{32}L_{22}^T = L_{21}L_{31} + L_{22}L_{32}^T \\
+Q_{\phi\phi} &= L_{31}L_{31}^T + L_{32}L_{32}^T + L_{33}L_{33}^T
+\end{aligned}
+$$
+
+Re-arranging, we can write out our efficient block-Cholesky algorithm:
 
 1. $L_{11} = \mathrm{Chol}(Q_{\psi\psi} + \tau_\psi Q_\text{prior})$
 2. $L_{21} = Q_{\psi\tau}L_{11}^{-T}$
+    - Calculate by solving $L_{11}L_{21}^T = Q_{\psi\tau}$
 3. $L_{31} = Q_{\psi\phi}L_{11}^{-T}$
+    - Calculate by solving $L_{11}L_{31}^T = Q_{\psi\tau}$
 4. $L_{22} = \mathrm{Chol}(S_{22})$
     - $S_{22} = \left(Q_{\tau\tau} + \tau_\tau Q_\text{prior}\right) - L_{21}L_{21}^T$
 5. $L_{32} = \left(Q_{\tau\phi} - L_{31}L_{21}^T\right)L_{22}^{-T}$
+    - Calculate by solving $L_{22}L_{32}^T = Q_{\tau\phi} - L_{31}L_{21}^T$
 6. $L_{33} = \mathrm{Chol}(S_{33})$
     - $S_{33} = \left( Q_{\phi\phi} + \tau_\phi Q_\text{prior} \right) - L_{31}L_{31}^T - L_{32}L_{32}^T$
+
+According to Theorem 4.3.1 in Golub and Van Loan, if $Q$ is a banded matrix with bandwidth b, then $L$ will also have lower bandwidth b. Thus, all our Cholesky blocks will have low bandwidth: The diagonal blocks will have lower bandwidth 2 and the off-diagonal blocks will be diagonal matrices (bandwidth 1). 
+
+The Cholesky decomposition of an $n \times n$ banded matrix with bandwidth $p << n$ involves $n(p^2 + 3p)$. Similarly, forward and backward substitution for banded matrices with $p << n$ requires about $2np$ flops. Thus, the major factor will be the bandwidth of $Q_\text{prior}$, which has bandwidth $\sqrt{n}$ as defined in the manuscript. Overall, this means we can compute $L_{post}$ in $O(n^{1.5})$ time using a block-Cholesky factorization. 
 
 ## Forward Substitution: Solving $Ly = b$
 

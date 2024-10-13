@@ -11,20 +11,21 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// gev_mle_multiple
-Rcpp::List gev_mle_multiple(Eigen::MatrixXd& data);
-RcppExport SEXP _maxandsmooth_gev_mle_multiple(SEXP dataSEXP) {
+// max
+Rcpp::List max(Eigen::MatrixXd& data, std::string family);
+RcppExport SEXP _maxandsmooth_max(SEXP dataSEXP, SEXP familySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type data(dataSEXP);
-    rcpp_result_gen = Rcpp::wrap(gev_mle_multiple(data));
+    Rcpp::traits::input_parameter< std::string >::type family(familySEXP);
+    rcpp_result_gen = Rcpp::wrap(max(data, family));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_maxandsmooth_gev_mle_multiple", (DL_FUNC) &_maxandsmooth_gev_mle_multiple, 1},
+    {"_maxandsmooth_max", (DL_FUNC) &_maxandsmooth_max, 2},
     {NULL, NULL, 0}
 };
 

@@ -1120,7 +1120,9 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
             <disp-formula>
               <alternatives>
                 <tex-math><![CDATA[
-      Q_{\text{prior}} = \begin{bmatrix}
+      \begin{aligned}
+      Q_{\text{prior}} &= I \otimes R + R \otimes I \\
+      R &= \begin{bmatrix}
       2 & -1 \\
       -1 & 2 & -1 \\
       & -1 & 2 & -1 \\
@@ -1129,117 +1131,139 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
       & & & & -1 & 2 & -1 \\
       & & & & & -1 & 2
       \end{bmatrix}
+      \end{aligned}
       ]]></tex-math>
                 <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
-                  <mml:mrow>
-                    <mml:msub>
-                      <mml:mi>Q</mml:mi>
-                      <mml:mtext mathvariant="normal">prior</mml:mtext>
-                    </mml:msub>
-                    <mml:mo>=</mml:mo>
-                    <mml:mrow>
-                      <mml:mo stretchy="true" form="prefix">[</mml:mo>
-                      <mml:mtable>
-                        <mml:mtr>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mn>2</mml:mn>
-                          </mml:mtd>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mi>−</mml:mi>
-                            <mml:mn>1</mml:mn>
-                          </mml:mtd>
-                        </mml:mtr>
-                        <mml:mtr>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mi>−</mml:mi>
-                            <mml:mn>1</mml:mn>
-                          </mml:mtd>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mn>2</mml:mn>
-                          </mml:mtd>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mi>−</mml:mi>
-                            <mml:mn>1</mml:mn>
-                          </mml:mtd>
-                        </mml:mtr>
-                        <mml:mtr>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mi>−</mml:mi>
-                            <mml:mn>1</mml:mn>
-                          </mml:mtd>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mn>2</mml:mn>
-                          </mml:mtd>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mi>−</mml:mi>
-                            <mml:mn>1</mml:mn>
-                          </mml:mtd>
-                        </mml:mtr>
-                        <mml:mtr>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mi>⋮</mml:mi>
-                          </mml:mtd>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mi>⋮</mml:mi>
-                          </mml:mtd>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mi>⋮</mml:mi>
-                          </mml:mtd>
-                        </mml:mtr>
-                        <mml:mtr>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mi>−</mml:mi>
-                            <mml:mn>1</mml:mn>
-                          </mml:mtd>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mn>2</mml:mn>
-                          </mml:mtd>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mi>−</mml:mi>
-                            <mml:mn>1</mml:mn>
-                          </mml:mtd>
-                        </mml:mtr>
-                        <mml:mtr>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mi>−</mml:mi>
-                            <mml:mn>1</mml:mn>
-                          </mml:mtd>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mn>2</mml:mn>
-                          </mml:mtd>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mi>−</mml:mi>
-                            <mml:mn>1</mml:mn>
-                          </mml:mtd>
-                        </mml:mtr>
-                        <mml:mtr>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center"/>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mi>−</mml:mi>
-                            <mml:mn>1</mml:mn>
-                          </mml:mtd>
-                          <mml:mtd columnalign="center" style="text-align: center">
-                            <mml:mn>2</mml:mn>
-                          </mml:mtd>
-                        </mml:mtr>
-                      </mml:mtable>
-                      <mml:mo stretchy="true" form="postfix">]</mml:mo>
-                    </mml:mrow>
-                  </mml:mrow>
+                  <mml:mtable>
+                    <mml:mtr>
+                      <mml:mtd columnalign="right" style="text-align: right">
+                        <mml:msub>
+                          <mml:mi>Q</mml:mi>
+                          <mml:mtext mathvariant="normal">prior</mml:mtext>
+                        </mml:msub>
+                      </mml:mtd>
+                      <mml:mtd columnalign="left" style="text-align: left">
+                        <mml:mo>=</mml:mo>
+                        <mml:mi>I</mml:mi>
+                        <mml:mo>⊗</mml:mo>
+                        <mml:mi>R</mml:mi>
+                        <mml:mo>+</mml:mo>
+                        <mml:mi>R</mml:mi>
+                        <mml:mo>⊗</mml:mo>
+                        <mml:mi>I</mml:mi>
+                      </mml:mtd>
+                    </mml:mtr>
+                    <mml:mtr>
+                      <mml:mtd columnalign="right" style="text-align: right">
+                        <mml:mi>R</mml:mi>
+                      </mml:mtd>
+                      <mml:mtd columnalign="left" style="text-align: left">
+                        <mml:mo>=</mml:mo>
+                        <mml:mrow>
+                          <mml:mo stretchy="true" form="prefix">[</mml:mo>
+                          <mml:mtable>
+                            <mml:mtr>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mn>2</mml:mn>
+                              </mml:mtd>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mi>−</mml:mi>
+                                <mml:mn>1</mml:mn>
+                              </mml:mtd>
+                            </mml:mtr>
+                            <mml:mtr>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mi>−</mml:mi>
+                                <mml:mn>1</mml:mn>
+                              </mml:mtd>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mn>2</mml:mn>
+                              </mml:mtd>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mi>−</mml:mi>
+                                <mml:mn>1</mml:mn>
+                              </mml:mtd>
+                            </mml:mtr>
+                            <mml:mtr>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mi>−</mml:mi>
+                                <mml:mn>1</mml:mn>
+                              </mml:mtd>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mn>2</mml:mn>
+                              </mml:mtd>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mi>−</mml:mi>
+                                <mml:mn>1</mml:mn>
+                              </mml:mtd>
+                            </mml:mtr>
+                            <mml:mtr>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mi>⋮</mml:mi>
+                              </mml:mtd>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mi>⋮</mml:mi>
+                              </mml:mtd>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mi>⋮</mml:mi>
+                              </mml:mtd>
+                            </mml:mtr>
+                            <mml:mtr>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mi>−</mml:mi>
+                                <mml:mn>1</mml:mn>
+                              </mml:mtd>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mn>2</mml:mn>
+                              </mml:mtd>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mi>−</mml:mi>
+                                <mml:mn>1</mml:mn>
+                              </mml:mtd>
+                            </mml:mtr>
+                            <mml:mtr>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mi>−</mml:mi>
+                                <mml:mn>1</mml:mn>
+                              </mml:mtd>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mn>2</mml:mn>
+                              </mml:mtd>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mi>−</mml:mi>
+                                <mml:mn>1</mml:mn>
+                              </mml:mtd>
+                            </mml:mtr>
+                            <mml:mtr>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center"/>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mi>−</mml:mi>
+                                <mml:mn>1</mml:mn>
+                              </mml:mtd>
+                              <mml:mtd columnalign="center" style="text-align: center">
+                                <mml:mn>2</mml:mn>
+                              </mml:mtd>
+                            </mml:mtr>
+                          </mml:mtable>
+                          <mml:mo stretchy="true" form="postfix">]</mml:mo>
+                        </mml:mrow>
+                      </mml:mtd>
+                    </mml:mtr>
+                  </mml:mtable>
                 </mml:math>
               </alternatives>
             </disp-formula>
@@ -3490,89 +3514,730 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
     the off-diagonal blocks are diagonal matrices we have that
     <inline-formula><alternatives><tex-math><![CDATA[Q_{\psi\tau} = Q_{\tau\psi}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msub><mml:mi>Q</mml:mi><mml:mrow><mml:mi>ψ</mml:mi><mml:mi>τ</mml:mi></mml:mrow></mml:msub><mml:mo>=</mml:mo><mml:msub><mml:mi>Q</mml:mi><mml:mrow><mml:mi>τ</mml:mi><mml:mi>ψ</mml:mi></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula>,
     <inline-formula><alternatives><tex-math><![CDATA[Q_{\psi\phi} = Q_{\phi\psi}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msub><mml:mi>Q</mml:mi><mml:mrow><mml:mi>ψ</mml:mi><mml:mi>ϕ</mml:mi></mml:mrow></mml:msub><mml:mo>=</mml:mo><mml:msub><mml:mi>Q</mml:mi><mml:mrow><mml:mi>ϕ</mml:mi><mml:mi>ψ</mml:mi></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula>
-    and <inline-formula><alternatives><tex-math><![CDATA[Q_{\tau\phi} = Q_{\phi\tau}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msub><mml:mi>Q</mml:mi><mml:mrow><mml:mi>τ</mml:mi><mml:mi>ϕ</mml:mi></mml:mrow></mml:msub><mml:mo>=</mml:mo><mml:msub><mml:mi>Q</mml:mi><mml:mrow><mml:mi>ϕ</mml:mi><mml:mi>τ</mml:mi></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula>.
-    We can thus calculate the Cholesky decomposition</p>
+    and <inline-formula><alternatives><tex-math><![CDATA[Q_{\tau\phi} = Q_{\phi\tau}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msub><mml:mi>Q</mml:mi><mml:mrow><mml:mi>τ</mml:mi><mml:mi>ϕ</mml:mi></mml:mrow></mml:msub><mml:mo>=</mml:mo><mml:msub><mml:mi>Q</mml:mi><mml:mrow><mml:mi>ϕ</mml:mi><mml:mi>τ</mml:mi></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula>.</p>
+        <p>We want to calculate the Cholesky decomposition
+    <inline-formula><alternatives><tex-math><![CDATA[Q_\text{post} = L_\text{post}L_\text{post}^T]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msub><mml:mi>Q</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub><mml:mo>=</mml:mo><mml:msub><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub><mml:msubsup><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext><mml:mi>T</mml:mi></mml:msubsup></mml:mrow></mml:math></alternatives></inline-formula>,
+    where</p>
         <p>
           <disp-formula>
             <alternatives>
               <tex-math><![CDATA[
-    L_\text{post} = \begin{bmatrix}
+    \begin{aligned}
+    Q_\text{post} &= \begin{bmatrix}
+    Q_{\psi\psi} + \tau_\psi Q_\text{prior} & Q_{\psi\tau} & Q_{\psi\phi} \\
+    Q_{\tau\psi} & Q_{\tau\tau} + \tau_\tau Q_\text{prior} & Q_{\tau\phi} \\
+    Q_{\phi\psi} & Q_{\phi\tau} & Q_{\phi\phi} + \tau_\phi Q_\text{prior},
+    \end{bmatrix} \\
+    &=
+    \begin{bmatrix}
     L_{11} & 0 & 0 \\
     L_{21} & L_{22} & 0 \\
     L_{31} & L_{32} & L_{33},
     \end{bmatrix}
+    \begin{bmatrix}
+    L_{11} & L_{21}^T & L_{31}^T \\
+    0 & L_{22} & L_{32}^T \\
+    0 & 0 & L_{33},
+    \end{bmatrix} \\
+    &= \begin{bmatrix}
+    L_{11}L_{11}^T & L_{11}L_{21}^T & L_{11}L_{31}^T  \\
+    L_{21}L_{11}^T & L_{21}L_{21}^T + L_{22}L_{22}^T & L_{21}L_{31} + L_{22}L_{32}^T \\
+    L_{31}L_{11}^T & L_{31}L_{21}^T + L_{32}L_{22}^T & L_{31}L_{31}^T + L_{32}L_{32}^T + L_{33}L_{33}^T
+    \end{bmatrix}.
+    \end{aligned}
     ]]></tex-math>
               <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
-                <mml:mrow>
-                  <mml:msub>
-                    <mml:mi>L</mml:mi>
-                    <mml:mtext mathvariant="normal">post</mml:mtext>
-                  </mml:msub>
-                  <mml:mo>=</mml:mo>
-                  <mml:mrow>
-                    <mml:mo stretchy="true" form="prefix">[</mml:mo>
-                    <mml:mtable>
-                      <mml:mtr>
-                        <mml:mtd columnalign="center" style="text-align: center">
-                          <mml:msub>
-                            <mml:mi>L</mml:mi>
-                            <mml:mn>11</mml:mn>
-                          </mml:msub>
-                        </mml:mtd>
-                        <mml:mtd columnalign="center" style="text-align: center">
-                          <mml:mn>0</mml:mn>
-                        </mml:mtd>
-                        <mml:mtd columnalign="center" style="text-align: center">
-                          <mml:mn>0</mml:mn>
-                        </mml:mtd>
-                      </mml:mtr>
-                      <mml:mtr>
-                        <mml:mtd columnalign="center" style="text-align: center">
-                          <mml:msub>
-                            <mml:mi>L</mml:mi>
-                            <mml:mn>21</mml:mn>
-                          </mml:msub>
-                        </mml:mtd>
-                        <mml:mtd columnalign="center" style="text-align: center">
-                          <mml:msub>
-                            <mml:mi>L</mml:mi>
-                            <mml:mn>22</mml:mn>
-                          </mml:msub>
-                        </mml:mtd>
-                        <mml:mtd columnalign="center" style="text-align: center">
-                          <mml:mn>0</mml:mn>
-                        </mml:mtd>
-                      </mml:mtr>
-                      <mml:mtr>
-                        <mml:mtd columnalign="center" style="text-align: center">
-                          <mml:msub>
-                            <mml:mi>L</mml:mi>
-                            <mml:mn>31</mml:mn>
-                          </mml:msub>
-                        </mml:mtd>
-                        <mml:mtd columnalign="center" style="text-align: center">
-                          <mml:msub>
-                            <mml:mi>L</mml:mi>
-                            <mml:mn>32</mml:mn>
-                          </mml:msub>
-                        </mml:mtd>
-                        <mml:mtd columnalign="center" style="text-align: center">
-                          <mml:msub>
-                            <mml:mi>L</mml:mi>
-                            <mml:mn>33</mml:mn>
-                          </mml:msub>
-                          <mml:mo>,</mml:mo>
-                        </mml:mtd>
-                      </mml:mtr>
-                    </mml:mtable>
-                    <mml:mo stretchy="true" form="postfix">]</mml:mo>
-                  </mml:mrow>
-                </mml:mrow>
+                <mml:mtable>
+                  <mml:mtr>
+                    <mml:mtd columnalign="right" style="text-align: right">
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mtext mathvariant="normal">post</mml:mtext>
+                      </mml:msub>
+                    </mml:mtd>
+                    <mml:mtd columnalign="left" style="text-align: left">
+                      <mml:mo>=</mml:mo>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">[</mml:mo>
+                        <mml:mtable>
+                          <mml:mtr>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>Q</mml:mi>
+                                <mml:mrow>
+                                  <mml:mi>ψ</mml:mi>
+                                  <mml:mi>ψ</mml:mi>
+                                </mml:mrow>
+                              </mml:msub>
+                              <mml:mo>+</mml:mo>
+                              <mml:msub>
+                                <mml:mi>τ</mml:mi>
+                                <mml:mi>ψ</mml:mi>
+                              </mml:msub>
+                              <mml:msub>
+                                <mml:mi>Q</mml:mi>
+                                <mml:mtext mathvariant="normal">prior</mml:mtext>
+                              </mml:msub>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>Q</mml:mi>
+                                <mml:mrow>
+                                  <mml:mi>ψ</mml:mi>
+                                  <mml:mi>τ</mml:mi>
+                                </mml:mrow>
+                              </mml:msub>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>Q</mml:mi>
+                                <mml:mrow>
+                                  <mml:mi>ψ</mml:mi>
+                                  <mml:mi>ϕ</mml:mi>
+                                </mml:mrow>
+                              </mml:msub>
+                            </mml:mtd>
+                          </mml:mtr>
+                          <mml:mtr>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>Q</mml:mi>
+                                <mml:mrow>
+                                  <mml:mi>τ</mml:mi>
+                                  <mml:mi>ψ</mml:mi>
+                                </mml:mrow>
+                              </mml:msub>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>Q</mml:mi>
+                                <mml:mrow>
+                                  <mml:mi>τ</mml:mi>
+                                  <mml:mi>τ</mml:mi>
+                                </mml:mrow>
+                              </mml:msub>
+                              <mml:mo>+</mml:mo>
+                              <mml:msub>
+                                <mml:mi>τ</mml:mi>
+                                <mml:mi>τ</mml:mi>
+                              </mml:msub>
+                              <mml:msub>
+                                <mml:mi>Q</mml:mi>
+                                <mml:mtext mathvariant="normal">prior</mml:mtext>
+                              </mml:msub>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>Q</mml:mi>
+                                <mml:mrow>
+                                  <mml:mi>τ</mml:mi>
+                                  <mml:mi>ϕ</mml:mi>
+                                </mml:mrow>
+                              </mml:msub>
+                            </mml:mtd>
+                          </mml:mtr>
+                          <mml:mtr>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>Q</mml:mi>
+                                <mml:mrow>
+                                  <mml:mi>ϕ</mml:mi>
+                                  <mml:mi>ψ</mml:mi>
+                                </mml:mrow>
+                              </mml:msub>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>Q</mml:mi>
+                                <mml:mrow>
+                                  <mml:mi>ϕ</mml:mi>
+                                  <mml:mi>τ</mml:mi>
+                                </mml:mrow>
+                              </mml:msub>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>Q</mml:mi>
+                                <mml:mrow>
+                                  <mml:mi>ϕ</mml:mi>
+                                  <mml:mi>ϕ</mml:mi>
+                                </mml:mrow>
+                              </mml:msub>
+                              <mml:mo>+</mml:mo>
+                              <mml:msub>
+                                <mml:mi>τ</mml:mi>
+                                <mml:mi>ϕ</mml:mi>
+                              </mml:msub>
+                              <mml:msub>
+                                <mml:mi>Q</mml:mi>
+                                <mml:mtext mathvariant="normal">prior</mml:mtext>
+                              </mml:msub>
+                              <mml:mo>,</mml:mo>
+                            </mml:mtd>
+                          </mml:mtr>
+                        </mml:mtable>
+                        <mml:mo stretchy="true" form="postfix">]</mml:mo>
+                      </mml:mrow>
+                    </mml:mtd>
+                  </mml:mtr>
+                  <mml:mtr>
+                    <mml:mtd columnalign="right" style="text-align: right"/>
+                    <mml:mtd columnalign="left" style="text-align: left">
+                      <mml:mo>=</mml:mo>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">[</mml:mo>
+                        <mml:mtable>
+                          <mml:mtr>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>11</mml:mn>
+                              </mml:msub>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:mn>0</mml:mn>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:mn>0</mml:mn>
+                            </mml:mtd>
+                          </mml:mtr>
+                          <mml:mtr>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>21</mml:mn>
+                              </mml:msub>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>22</mml:mn>
+                              </mml:msub>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:mn>0</mml:mn>
+                            </mml:mtd>
+                          </mml:mtr>
+                          <mml:mtr>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>31</mml:mn>
+                              </mml:msub>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>32</mml:mn>
+                              </mml:msub>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>33</mml:mn>
+                              </mml:msub>
+                              <mml:mo>,</mml:mo>
+                            </mml:mtd>
+                          </mml:mtr>
+                        </mml:mtable>
+                        <mml:mo stretchy="true" form="postfix">]</mml:mo>
+                      </mml:mrow>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">[</mml:mo>
+                        <mml:mtable>
+                          <mml:mtr>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>11</mml:mn>
+                              </mml:msub>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>21</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>31</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                            </mml:mtd>
+                          </mml:mtr>
+                          <mml:mtr>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:mn>0</mml:mn>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>22</mml:mn>
+                              </mml:msub>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>32</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                            </mml:mtd>
+                          </mml:mtr>
+                          <mml:mtr>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:mn>0</mml:mn>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:mn>0</mml:mn>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>33</mml:mn>
+                              </mml:msub>
+                              <mml:mo>,</mml:mo>
+                            </mml:mtd>
+                          </mml:mtr>
+                        </mml:mtable>
+                        <mml:mo stretchy="true" form="postfix">]</mml:mo>
+                      </mml:mrow>
+                    </mml:mtd>
+                  </mml:mtr>
+                  <mml:mtr>
+                    <mml:mtd columnalign="right" style="text-align: right"/>
+                    <mml:mtd columnalign="left" style="text-align: left">
+                      <mml:mo>=</mml:mo>
+                      <mml:mrow>
+                        <mml:mo stretchy="true" form="prefix">[</mml:mo>
+                        <mml:mtable>
+                          <mml:mtr>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>11</mml:mn>
+                              </mml:msub>
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>11</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>11</mml:mn>
+                              </mml:msub>
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>21</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>11</mml:mn>
+                              </mml:msub>
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>31</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                            </mml:mtd>
+                          </mml:mtr>
+                          <mml:mtr>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>21</mml:mn>
+                              </mml:msub>
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>11</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>21</mml:mn>
+                              </mml:msub>
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>21</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                              <mml:mo>+</mml:mo>
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>22</mml:mn>
+                              </mml:msub>
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>22</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>21</mml:mn>
+                              </mml:msub>
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>31</mml:mn>
+                              </mml:msub>
+                              <mml:mo>+</mml:mo>
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>22</mml:mn>
+                              </mml:msub>
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>32</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                            </mml:mtd>
+                          </mml:mtr>
+                          <mml:mtr>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>31</mml:mn>
+                              </mml:msub>
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>11</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>31</mml:mn>
+                              </mml:msub>
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>21</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                              <mml:mo>+</mml:mo>
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>32</mml:mn>
+                              </mml:msub>
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>22</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                            </mml:mtd>
+                            <mml:mtd columnalign="center" style="text-align: center">
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>31</mml:mn>
+                              </mml:msub>
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>31</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                              <mml:mo>+</mml:mo>
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>32</mml:mn>
+                              </mml:msub>
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>32</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                              <mml:mo>+</mml:mo>
+                              <mml:msub>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>33</mml:mn>
+                              </mml:msub>
+                              <mml:msubsup>
+                                <mml:mi>L</mml:mi>
+                                <mml:mn>33</mml:mn>
+                                <mml:mi>T</mml:mi>
+                              </mml:msubsup>
+                            </mml:mtd>
+                          </mml:mtr>
+                        </mml:mtable>
+                        <mml:mo stretchy="true" form="postfix">]</mml:mo>
+                      </mml:mrow>
+                      <mml:mi>.</mml:mi>
+                    </mml:mtd>
+                  </mml:mtr>
+                </mml:mtable>
               </mml:math>
             </alternatives>
           </disp-formula>
         </p>
-        <p>efficiently using a block-Cholesky factorization:</p>
+        <p>We do this efficiently using a block-Cholesky factorization.
+    First, let’s write up how the blocks of
+    <inline-formula><alternatives><tex-math><![CDATA[L_\text{post}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>L</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub></mml:math></alternatives></inline-formula>
+    connect to the blocks of <inline-formula><alternatives><tex-math><![CDATA[Q_\text{post}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>Q</mml:mi><mml:mtext mathvariant="normal">post</mml:mtext></mml:msub></mml:math></alternatives></inline-formula>:</p>
+        <p>
+          <disp-formula>
+            <alternatives>
+              <tex-math><![CDATA[
+    \begin{aligned}
+    Q_{\psi\psi} + \tau_\psi Q_\text{prior} &= L_{11}L_{11}^T \\
+    Q_{\psi\tau} &=L_{21}L_{11}^T = L_{11}L_{21}^T \\
+    Q_{\psi\phi} &= L_{31}L_{11}^T = L_{11}L_{31}^T \\
+    Q_{\tau\tau} + \tau_\tau Q_\text{prior} &= L_{21}L_{21}^T + L_{22}L_{22}^T \\
+    Q_{\tau\phi} &= L_{31}L_{21}^T + L_{32}L_{22}^T = L_{21}L_{31} + L_{22}L_{32}^T \\
+    Q_{\phi\phi} &= L_{31}L_{31}^T + L_{32}L_{32}^T + L_{33}L_{33}^T
+    \end{aligned}
+    ]]></tex-math>
+              <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
+                <mml:mtable>
+                  <mml:mtr>
+                    <mml:mtd columnalign="right" style="text-align: right">
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mrow>
+                          <mml:mi>ψ</mml:mi>
+                          <mml:mi>ψ</mml:mi>
+                        </mml:mrow>
+                      </mml:msub>
+                      <mml:mo>+</mml:mo>
+                      <mml:msub>
+                        <mml:mi>τ</mml:mi>
+                        <mml:mi>ψ</mml:mi>
+                      </mml:msub>
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mtext mathvariant="normal">prior</mml:mtext>
+                      </mml:msub>
+                    </mml:mtd>
+                    <mml:mtd columnalign="left" style="text-align: left">
+                      <mml:mo>=</mml:mo>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>11</mml:mn>
+                      </mml:msub>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>11</mml:mn>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                    </mml:mtd>
+                  </mml:mtr>
+                  <mml:mtr>
+                    <mml:mtd columnalign="right" style="text-align: right">
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mrow>
+                          <mml:mi>ψ</mml:mi>
+                          <mml:mi>τ</mml:mi>
+                        </mml:mrow>
+                      </mml:msub>
+                    </mml:mtd>
+                    <mml:mtd columnalign="left" style="text-align: left">
+                      <mml:mo>=</mml:mo>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>21</mml:mn>
+                      </mml:msub>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>11</mml:mn>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                      <mml:mo>=</mml:mo>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>11</mml:mn>
+                      </mml:msub>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>21</mml:mn>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                    </mml:mtd>
+                  </mml:mtr>
+                  <mml:mtr>
+                    <mml:mtd columnalign="right" style="text-align: right">
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mrow>
+                          <mml:mi>ψ</mml:mi>
+                          <mml:mi>ϕ</mml:mi>
+                        </mml:mrow>
+                      </mml:msub>
+                    </mml:mtd>
+                    <mml:mtd columnalign="left" style="text-align: left">
+                      <mml:mo>=</mml:mo>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>31</mml:mn>
+                      </mml:msub>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>11</mml:mn>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                      <mml:mo>=</mml:mo>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>11</mml:mn>
+                      </mml:msub>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>31</mml:mn>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                    </mml:mtd>
+                  </mml:mtr>
+                  <mml:mtr>
+                    <mml:mtd columnalign="right" style="text-align: right">
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mrow>
+                          <mml:mi>τ</mml:mi>
+                          <mml:mi>τ</mml:mi>
+                        </mml:mrow>
+                      </mml:msub>
+                      <mml:mo>+</mml:mo>
+                      <mml:msub>
+                        <mml:mi>τ</mml:mi>
+                        <mml:mi>τ</mml:mi>
+                      </mml:msub>
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mtext mathvariant="normal">prior</mml:mtext>
+                      </mml:msub>
+                    </mml:mtd>
+                    <mml:mtd columnalign="left" style="text-align: left">
+                      <mml:mo>=</mml:mo>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>21</mml:mn>
+                      </mml:msub>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>21</mml:mn>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                      <mml:mo>+</mml:mo>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>22</mml:mn>
+                      </mml:msub>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>22</mml:mn>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                    </mml:mtd>
+                  </mml:mtr>
+                  <mml:mtr>
+                    <mml:mtd columnalign="right" style="text-align: right">
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mrow>
+                          <mml:mi>τ</mml:mi>
+                          <mml:mi>ϕ</mml:mi>
+                        </mml:mrow>
+                      </mml:msub>
+                    </mml:mtd>
+                    <mml:mtd columnalign="left" style="text-align: left">
+                      <mml:mo>=</mml:mo>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>31</mml:mn>
+                      </mml:msub>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>21</mml:mn>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                      <mml:mo>+</mml:mo>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>32</mml:mn>
+                      </mml:msub>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>22</mml:mn>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                      <mml:mo>=</mml:mo>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>21</mml:mn>
+                      </mml:msub>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>31</mml:mn>
+                      </mml:msub>
+                      <mml:mo>+</mml:mo>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>22</mml:mn>
+                      </mml:msub>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>32</mml:mn>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                    </mml:mtd>
+                  </mml:mtr>
+                  <mml:mtr>
+                    <mml:mtd columnalign="right" style="text-align: right">
+                      <mml:msub>
+                        <mml:mi>Q</mml:mi>
+                        <mml:mrow>
+                          <mml:mi>ϕ</mml:mi>
+                          <mml:mi>ϕ</mml:mi>
+                        </mml:mrow>
+                      </mml:msub>
+                    </mml:mtd>
+                    <mml:mtd columnalign="left" style="text-align: left">
+                      <mml:mo>=</mml:mo>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>31</mml:mn>
+                      </mml:msub>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>31</mml:mn>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                      <mml:mo>+</mml:mo>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>32</mml:mn>
+                      </mml:msub>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>32</mml:mn>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                      <mml:mo>+</mml:mo>
+                      <mml:msub>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>33</mml:mn>
+                      </mml:msub>
+                      <mml:msubsup>
+                        <mml:mi>L</mml:mi>
+                        <mml:mn>33</mml:mn>
+                        <mml:mi>T</mml:mi>
+                      </mml:msubsup>
+                    </mml:mtd>
+                  </mml:mtr>
+                </mml:mtable>
+              </mml:math>
+            </alternatives>
+          </disp-formula>
+        </p>
+        <p>Re-arranging, we can write out our efficient block-Cholesky
+    algorithm:</p>
         <list list-type="order">
           <list-item>
             <p>
@@ -3650,6 +4315,11 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
                 </alternatives>
               </inline-formula>
             </p>
+            <list list-type="bullet">
+              <list-item>
+                <p>Calculate by solving <inline-formula><alternatives><tex-math><![CDATA[L_{11}L_{21}^T = Q_{\psi\tau}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msub><mml:mi>L</mml:mi><mml:mn>11</mml:mn></mml:msub><mml:msubsup><mml:mi>L</mml:mi><mml:mn>21</mml:mn><mml:mi>T</mml:mi></mml:msubsup><mml:mo>=</mml:mo><mml:msub><mml:mi>Q</mml:mi><mml:mrow><mml:mi>ψ</mml:mi><mml:mi>τ</mml:mi></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula></p>
+              </list-item>
+            </list>
           </list-item>
           <list-item>
             <p>
@@ -3683,6 +4353,11 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
                 </alternatives>
               </inline-formula>
             </p>
+            <list list-type="bullet">
+              <list-item>
+                <p>Calculate by solving <inline-formula><alternatives><tex-math><![CDATA[L_{11}L_{31}^T = Q_{\psi\tau}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msub><mml:mi>L</mml:mi><mml:mn>11</mml:mn></mml:msub><mml:msubsup><mml:mi>L</mml:mi><mml:mn>31</mml:mn><mml:mi>T</mml:mi></mml:msubsup><mml:mo>=</mml:mo><mml:msub><mml:mi>Q</mml:mi><mml:mrow><mml:mi>ψ</mml:mi><mml:mi>τ</mml:mi></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula></p>
+              </list-item>
+            </list>
           </list-item>
           <list-item>
             <p>
@@ -3812,6 +4487,11 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
                 </alternatives>
               </inline-formula>
             </p>
+            <list list-type="bullet">
+              <list-item>
+                <p>Calculate by solving <inline-formula><alternatives><tex-math><![CDATA[L_{22}L_{32}^T = Q_{\tau\phi} - L_{31}L_{21}^T]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msub><mml:mi>L</mml:mi><mml:mn>22</mml:mn></mml:msub><mml:msubsup><mml:mi>L</mml:mi><mml:mn>32</mml:mn><mml:mi>T</mml:mi></mml:msubsup><mml:mo>=</mml:mo><mml:msub><mml:mi>Q</mml:mi><mml:mrow><mml:mi>τ</mml:mi><mml:mi>ϕ</mml:mi></mml:mrow></mml:msub><mml:mo>−</mml:mo><mml:msub><mml:mi>L</mml:mi><mml:mn>31</mml:mn></mml:msub><mml:msubsup><mml:mi>L</mml:mi><mml:mn>21</mml:mn><mml:mi>T</mml:mi></mml:msubsup></mml:mrow></mml:math></alternatives></inline-formula></p>
+              </list-item>
+            </list>
           </list-item>
           <list-item>
             <p>
@@ -3906,6 +4586,27 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
             </list>
           </list-item>
         </list>
+        <p>According to Theorem 4.3.1 in Golub and Van Loan, if
+    <inline-formula><alternatives><tex-math><![CDATA[Q]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mi>Q</mml:mi></mml:math></alternatives></inline-formula>
+    is a banded matrix with bandwidth b, then
+    <inline-formula><alternatives><tex-math><![CDATA[L]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mi>L</mml:mi></mml:math></alternatives></inline-formula>
+    will also have lower bandwidth b. Thus, all our Cholesky blocks will
+    have low bandwidth: The diagonal blocks will have lower bandwidth 2
+    and the off-diagonal blocks will be diagonal matrices (bandwidth
+    1).</p>
+        <p>The Cholesky decomposition of an <inline-formula><alternatives><tex-math><![CDATA[n \times n]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>n</mml:mi><mml:mo>×</mml:mo><mml:mi>n</mml:mi></mml:mrow></mml:math></alternatives></inline-formula>
+    banded matrix with bandwidth <inline-formula><alternatives><tex-math><![CDATA[p << n]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>p</mml:mi><mml:mo>&lt;</mml:mo><mml:mo>&lt;</mml:mo><mml:mi>n</mml:mi></mml:mrow></mml:math></alternatives></inline-formula>
+    involves <inline-formula><alternatives><tex-math><![CDATA[n(p^2 + 3p)]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>n</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:msup><mml:mi>p</mml:mi><mml:mn>2</mml:mn></mml:msup><mml:mo>+</mml:mo><mml:mn>3</mml:mn><mml:mi>p</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula>.
+    Similarly, forward and backward substitution for banded matrices
+    with <inline-formula><alternatives><tex-math><![CDATA[p << n]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>p</mml:mi><mml:mo>&lt;</mml:mo><mml:mo>&lt;</mml:mo><mml:mi>n</mml:mi></mml:mrow></mml:math></alternatives></inline-formula>
+    requires about <inline-formula><alternatives><tex-math><![CDATA[2np]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mn>2</mml:mn><mml:mi>n</mml:mi><mml:mi>p</mml:mi></mml:mrow></mml:math></alternatives></inline-formula>
+    flops. Thus, the major factor will be the bandwidth of
+    <inline-formula><alternatives><tex-math><![CDATA[Q_\text{prior}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>Q</mml:mi><mml:mtext mathvariant="normal">prior</mml:mtext></mml:msub></mml:math></alternatives></inline-formula>,
+    which has bandwidth <inline-formula><alternatives><tex-math><![CDATA[\sqrt{n}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msqrt><mml:mi>n</mml:mi></mml:msqrt></mml:math></alternatives></inline-formula>
+    as defined in the manuscript. Overall, this means we can compute
+    <inline-formula><alternatives><tex-math><![CDATA[L_{post}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>L</mml:mi><mml:mrow><mml:mi>p</mml:mi><mml:mi>o</mml:mi><mml:mi>s</mml:mi><mml:mi>t</mml:mi></mml:mrow></mml:msub></mml:math></alternatives></inline-formula>
+    in <inline-formula><alternatives><tex-math><![CDATA[O(n^{1.5})]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>O</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:msup><mml:mi>n</mml:mi><mml:mn>1.5</mml:mn></mml:msup><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula>
+    time using a block-Cholesky factorization.</p>
       </sec>
       <sec id="forward-substitution-solving-ly-b">
         <title>Forward Substitution: Solving <inline-formula><alternatives><tex-math><![CDATA[Ly = b]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>L</mml:mi><mml:mi>y</mml:mi><mml:mo>=</mml:mo><mml:mi>b</mml:mi></mml:mrow></mml:math></alternatives></inline-formula></title>
