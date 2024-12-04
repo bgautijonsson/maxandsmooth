@@ -1,7 +1,7 @@
 #ifndef BLOCK_CHOLESKY_H
 #define BLOCK_CHOLESKY_H
 
-#include <Eigen/Dense>
+#include <Eigen/Sparse>
 #include <vector>
 
 namespace block_cholesky {
@@ -29,12 +29,22 @@ public:
      * @param Q_pf \( Q_{\psi\phi} \)
      * @param Q_tf \( Q_{\tau\phi} \)
      */
-    void setPrecisionBlocks(const Eigen::MatrixXd& Q_pp, 
-                            const Eigen::MatrixXd& Q_tt, 
-                            const Eigen::MatrixXd& Q_ff,
-                            const Eigen::MatrixXd& Q_pt, 
-                            const Eigen::MatrixXd& Q_pf, 
-                            const Eigen::MatrixXd& Q_tf);
+    void setPrecisionBlocks(
+        const Eigen::SparseMatrix<double>& Q_pp, 
+        const Eigen::SparseMatrix<double>& Q_tt, 
+        const Eigen::SparseMatrix<double>& Q_ff,
+        const Eigen::SparseMatrix<double>& Q_pt, 
+        const Eigen::SparseMatrix<double>& Q_pf, 
+        const Eigen::SparseMatrix<double>& Q_tf,
+        const Eigen::SparseMatrix<double>& Q_prior
+    );
+
+    /**
+     * @brief Sets the tau vector.
+     *
+     * @param tau The tau vector.
+     */
+    void setTau(const Eigen::VectorXd& tau);
 
     /**
      * @brief Performs the Block-Cholesky decomposition as per the algorithm.
@@ -79,20 +89,21 @@ private:
     int block_size_;
 
     // Precision matrix components
-    Eigen::MatrixXd Q_pp_;
-    Eigen::MatrixXd Q_tt_;
-    Eigen::MatrixXd Q_ff_;
-    Eigen::MatrixXd Q_pt_;
-    Eigen::MatrixXd Q_pf_;
-    Eigen::MatrixXd Q_tf_;
-
+    Eigen::SparseMatrix<double> Q_pp_;
+    Eigen::SparseMatrix<double> Q_tt_;
+    Eigen::SparseMatrix<double> Q_ff_;
+    Eigen::SparseMatrix<double> Q_pt_;
+    Eigen::SparseMatrix<double> Q_pf_;
+    Eigen::SparseMatrix<double> Q_tf_;
+    Eigen::SparseMatrix<double> Q_prior_;
+    Eigen::VectorXd tau_;
     // Cholesky factors
-    Eigen::MatrixXd L11_;
-    Eigen::MatrixXd L21_;
-    Eigen::MatrixXd L31_;
-    Eigen::MatrixXd L22_;
-    Eigen::MatrixXd L32_;
-    Eigen::MatrixXd L33_;
+    Eigen::SparseMatrix<double> L11_;
+    Eigen::SparseMatrix<double> L21_;
+    Eigen::SparseMatrix<double> L31_;
+    Eigen::SparseMatrix<double> L22_;
+    Eigen::SparseMatrix<double> L32_;
+    Eigen::SparseMatrix<double> L33_;
 
     // Log determinant
     double log_det_;
@@ -103,7 +114,7 @@ private:
      * @param block The matrix block to decompose.
      * @return The lower triangular matrix from Cholesky decomposition, or an empty matrix if decomposition fails.
      */
-    Eigen::MatrixXd choleskyDecompose(const Eigen::MatrixXd& block) const;
+    Eigen::SparseMatrix<double> choleskyDecompose(const Eigen::SparseMatrix<double>& block);
 };
 
 } // namespace block_cholesky

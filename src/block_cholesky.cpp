@@ -1,55 +1,68 @@
 #include "block_cholesky.h"
-#include <Eigen/Cholesky>
+#include <RcppEigen.h>
 #include <stdexcept>
 #include <cmath>
+
+// [[Rcpp::depends(RcppEigen)]]
 
 namespace block_cholesky {
 
 BlockCholesky::BlockCholesky(int n_blocks, int block_size)
     : n_blocks_(n_blocks), block_size_(block_size), log_det_(0.0) {
     // Initialize precision matrices as zero matrices
-    Q_pp_ = Eigen::MatrixXd::Zero(block_size_, block_size_);
-    Q_tt_ = Eigen::MatrixXd::Zero(block_size_, block_size_);
-    Q_ff_ = Eigen::MatrixXd::Zero(block_size_, block_size_);
-    Q_pt_ = Eigen::MatrixXd::Zero(block_size_, block_size_);
-    Q_pf_ = Eigen::MatrixXd::Zero(block_size_, block_size_);
-    Q_tf_ = Eigen::MatrixXd::Zero(block_size_, block_size_);
+    Q_pp_ = Eigen::SparseMatrix<double>(block_size_, block_size_);
+    Q_tt_ = Eigen::SparseMatrix<double>(block_size_, block_size_);
+    Q_ff_ = Eigen::SparseMatrix<double>(block_size_, block_size_);
+    Q_pt_ = Eigen::SparseMatrix<double>(block_size_, block_size_);
+    Q_pf_ = Eigen::SparseMatrix<double>(block_size_, block_size_);
+    Q_tf_ = Eigen::SparseMatrix<double>(block_size_, block_size_);
+    Q_prior_ = Eigen::SparseMatrix<double>(block_size_, block_size_);
+    tau_ = Eigen::VectorXd(n_blocks_);
 }
 
-void BlockCholesky::setPrecisionBlocks(const Eigen::MatrixXd& Q_pp, 
-                                      const Eigen::MatrixXd& Q_tt, 
-                                      const Eigen::MatrixXd& Q_ff,
-                                      const Eigen::MatrixXd& Q_pt, 
-                                      const Eigen::MatrixXd& Q_pf, 
-                                      const Eigen::MatrixXd& Q_tf) {
-    if (Q_pp.rows() != block_size_ || Q_pp.cols() != block_size_ ||
-        Q_tt.rows() != block_size_ || Q_tt.cols() != block_size_ ||
-        Q_ff.rows() != block_size_ || Q_ff.cols() != block_size_ ||
-        Q_pt.rows() != block_size_ || Q_pt.cols() != block_size_ ||
-        Q_pf.rows() != block_size_ || Q_pf.cols() != block_size_ ||
-        Q_tf.rows() != block_size_ || Q_tf.cols() != block_size_) {
+void BlockCholesky::setPrecisionBlocks(
+    // Q_etay components
+    const Eigen::SparseMatrix<double>& Q_psi_psi,
+    const Eigen::SparseMatrix<double>& Q_tau_tau,
+    const Eigen::SparseMatrix<double>& Q_phi_phi,
+    const Eigen::SparseMatrix<double>& Q_psi_tau,
+    const Eigen::SparseMatrix<double>& Q_psi_phi,
+    const Eigen::SparseMatrix<double>& Q_tau_phi,
+    const Eigen::SparseMatrix<double>& Q_prior
+    ) {
+    if (Q_psi_psi.rows() != block_size_ || Q_psi_psi.cols() != block_size_ ||
+        Q_tau_tau.rows() != block_size_ || Q_tau_tau.cols() != block_size_ ||
+        Q_phi_phi.rows() != block_size_ || Q_phi_phi.cols() != block_size_ ||
+        Q_psi_tau.rows() != block_size_ || Q_psi_tau.cols() != block_size_ ||
+        Q_psi_phi.rows() != block_size_ || Q_psi_phi.cols() != block_size_ ||
+        Q_tau_phi.rows() != block_size_ || Q_tau_phi.cols() != block_size_) {
         throw std::invalid_argument("Block size mismatch in setPrecisionBlocks.");
     }
-    Q_pp_ = Q_pp;
-    Q_tt_ = Q_tt;
-    Q_ff_ = Q_ff;
-    Q_pt_ = Q_pt;
-    Q_pf_ = Q_pf;
-    Q_tf_ = Q_tf;
+    Q_pp_ = Q_psi_psi;
+    Q_tt_ = Q_tau_tau;
+    Q_ff_ = Q_phi_phi;
+    Q_pt_ = Q_psi_tau;
+    Q_pf_ = Q_psi_phi;
+    Q_tf_ = Q_tau_phi;
+    Q_prior_ = Q_prior;
 }
 
-Eigen::MatrixXd BlockCholesky::choleskyDecompose(const Eigen::MatrixXd& block) const {
-    Eigen::LLT<Eigen::MatrixXd> llt(block);
+void BlockCholesky::setTau(const Eigen::VectorXd& tau) {
+    tau_ = tau;
+}
+
+Eigen::SparseMatrix<double> BlockCholesky::choleskyDecompose(const Eigen::SparseMatrix<double>& block) {
+    Eigen::SimplicialLLT<Eigen::SparseMatrix<double>, Eigen::Lower, Eigen::NaturalOrdering<int>> llt(block);
     if (llt.info() == Eigen::NumericalIssue) {
         // Matrix is not positive definite
-        return Eigen::MatrixXd();
+        return Eigen::SparseMatrix<double, Eigen::RowMajor>();
     }
     return llt.matrixL();
 }
 
 bool BlockCholesky::computeDecomposition() {
-    // Step 1: Compute L11 = Cholesky(Q_pp)
-    L11_ = choleskyDecompose(Q_pp_);
+    // Step 1: Compute L11 = Cholesky(Q_pp + tau_psi Q_prior)
+    L11_ = choleskyDecompose(Q_pp_ + tau_(0) * Q_prior_);
     if (L11_.size() == 0) {
         return false; // Decomposition failed
     }
@@ -57,14 +70,14 @@ bool BlockCholesky::computeDecomposition() {
     log_det_ += 2.0 * L11_.diagonal().array().log().sum();
 
     // Step 2: Compute L21 = Q_pt * L11^{-T}
-    Eigen::MatrixXd L11_invT = L11_.triangularView<Eigen::Lower>().solve(Eigen::MatrixXd::Identity(block_size_, block_size_));
+    Eigen::SparseMatrix<double> L11_invT = L11_.triangularView<Eigen::Lower>().solve(Eigen::MatrixXd::Identity(block_size_, block_size_)).sparseView();
     L21_ = Q_pt_ * L11_invT;
 
     // Step 3: Compute L31 = Q_pf * L11^{-T}
     L31_ = Q_pf_ * L11_invT;
 
     // Step 4: Compute S22 = Q_tt + tau_tau Q_prior - L21 * L21^T
-    Eigen::MatrixXd S22 = Q_tt_ - L21_ * L21_.transpose();
+    Eigen::SparseMatrix<double> S22 = Q_tt_ + tau_(1) * Q_prior_ - L21_ * L21_.transpose();
     L22_ = choleskyDecompose(S22);
     if (L22_.size() == 0) {
         return false; // Decomposition failed
@@ -73,11 +86,11 @@ bool BlockCholesky::computeDecomposition() {
     log_det_ += 2.0 * L22_.diagonal().array().log().sum();
 
     // Step 5: Compute L32 = (Q_tf - L31 * L21^T) * L22^{-T}
-    Eigen::MatrixXd L22_invT = L22_.triangularView<Eigen::Lower>().solve(Eigen::MatrixXd::Identity(block_size_, block_size_));
+    Eigen::SparseMatrix<double> L22_invT = L22_.triangularView<Eigen::Lower>().solve(Eigen::MatrixXd::Identity(block_size_, block_size_)).sparseView();
     L32_ = (Q_tf_ - L31_ * L21_.transpose()) * L22_invT;
 
     // Step 6: Compute S33 = Q_ff + tau_phi Q_prior - L31 * L31^T - L32 * L32^T
-    Eigen::MatrixXd S33 = Q_ff_ - L31_ * L31_.transpose() - L32_ * L32_.transpose();
+    Eigen::SparseMatrix<double> S33 = Q_ff_ + tau_(2) * Q_prior_ - L31_ * L31_.transpose() - L32_ * L32_.transpose();
     L33_ = choleskyDecompose(S33);
     if (L33_.size() == 0) {
         return false; // Decomposition failed

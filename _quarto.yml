@@ -19,7 +19,7 @@ format:
   jats: default
   pdf: 
     keep-tex: true
- 
+
 execute:
   freeze: true
 

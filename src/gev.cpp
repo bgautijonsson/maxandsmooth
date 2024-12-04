@@ -43,6 +43,11 @@ dual loglik(dual psi, dual tau, dual phi, const VectorXd& data) {
         }
     }
 
+    // Priors
+    loglik -= 0.5 * pow(psi, 2);
+    loglik -= 0.5 * pow(tau, 2);
+    loglik -= 0.5 * pow(phi, 2);
+
     return loglik;
 }
 

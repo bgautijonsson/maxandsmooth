@@ -8,8 +8,8 @@ library(bayesplot)
 
 model_stations <- stations |>
   filter(
-    proj_x < 25,
-    proj_y < 25
+    between(proj_x, 100, 125),
+    between(proj_y, 100, 125)
   )
 
 d <- precip |>
@@ -26,19 +26,39 @@ ms_res <- maxandsmooth(
   x_dim = dim_x,
   y_dim = dim_y,
   family = "gev",
-  n_iterations = 300,
-  burn_in = 100,
-  thin = 1,
-  print_every = 10,
-  proposal_sd = 0.1
+  n_iter = 500,
+  n_burnin = 500,
+  n_thin = 1,
+  proposal_sd = 0.5
 )
 
-draws <- as_draws_df(ms_res)
+str(ms_res)
+
+tau_post <- ms_res$smooth_results$tau
+colnames(tau_post) <- c("tau_psi", "tau_tau", "tau_phi")
+eta_post <- ms_res$smooth_results$eta
+colnames(eta_post) <- c(
+  paste0("psi[", seq_len(nrow(model_stations)), "]"),
+  paste0("tau[", seq_len(nrow(model_stations)), "]"),
+  paste0("phi[", seq_len(nrow(model_stations)), "]")
+)
+
+post <- cbind(
+  tau_post,
+  eta_post
+)
+
+draws <- as_draws_df(post)
 
 draws
 
+mcmc_trace(
+  draws,
+  pars = c("tau_psi", "tau_tau", "tau_phi")
+)
+
 tibble(
-  x = ms_res[, ncol(ms_res)]
+  x = draws[, 1]
 ) |>
   mutate(
     iter = row_number(),
@@ -54,11 +74,11 @@ draws_summary <- summarise_draws(draws)
 draws_summary
 
 plot_dat <- draws_summary |>
-  filter(str_detect(variable, "[0-9]")) |> 
+  filter(str_detect(variable, "[0-9]")) |>
   mutate(
     station = parse_number(variable),
     variable = str_replace(variable, "\\[.*", "")
-  ) |> 
+  ) |>
   mutate(
     proj_x = model_stations$proj_x,
     proj_y = model_stations$proj_y,
@@ -66,17 +86,17 @@ plot_dat <- draws_summary |>
   )
 
 plot_dat |>
-  filter(variable == "location") |>
+  filter(variable == "psi") |>
   ggplot(aes(proj_x, proj_y, fill = mean)) +
   geom_raster()
 
 plot_dat |>
-  filter(variable == "scale") |>
+  filter(variable == "tau") |>
   ggplot(aes(proj_x, proj_y, fill = mean)) +
   geom_raster()
 
 
 plot_dat |>
-  filter(variable == "shape") |>
+  filter(variable == "phi") |>
   ggplot(aes(proj_x, proj_y, fill = mean)) +
   geom_raster()

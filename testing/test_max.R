@@ -1,16 +1,15 @@
 library(maxandsmooth)
-library(bggjphd)
 library(sf)
 library(tidyverse)
 library(evd)
 
-model_stations <- stations |>
+model_stations <- bggjphd::stations |>
   filter(
-    # proj_x <= 20,
-    # proj_y <= 20
+    proj_x <= 20,
+    proj_y <= 20
   )
 
-model_precip <- precip |>
+model_precip <- bggjphd::precip |>
   semi_join(model_stations, by = "station")
 
 Y <- model_precip |>
@@ -19,8 +18,9 @@ Y <- model_precip |>
   as.matrix()
 
 tictoc::tic()
-results <- max(Y, "gev")
+results <- ms_max(Y, "gevt")
 tictoc::toc()
+
 
 
 # exp(results[, 1]) |> range()
@@ -29,8 +29,9 @@ tictoc::toc()
 
 plot_dat <- tibble(
   psi = results$mles[, 1],
-  tau = results$mles[, 2] + results$mles[, 1],
+  tau = results$mles[, 2],
   phi = results$mles[, 3],
+  gamma = results$mles[, 4],
   mu = exp(psi),
   sigma = exp(tau + psi),
   xi = plogis(phi)
@@ -40,9 +41,9 @@ plot_dat <- tibble(
     proj_x = model_stations$proj_x,
     proj_y = model_stations$proj_y
   ) |>
-  inner_join(stations, by = c("station", "proj_x", "proj_y")) |>
-  stations_to_sf() |>
-  points_to_grid()
+  inner_join(bggjphd::stations, by = c("station", "proj_x", "proj_y")) |>
+  bggjphd::stations_to_sf() |>
+  bggjphd::points_to_grid()
 
 plot_dat |>
   ggplot(aes(proj_x, proj_y, fill = psi)) +
