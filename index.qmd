@@ -159,6 +159,6 @@ The precision matrix $Q_{\eta y}$ is passed to Stan in a sparse representation a
 
 The model uses the following prior distributions: what
 
-* $\sigma_p \sim \text{Exponential}(1)$ for the marginal standard deviations
-* $\rho_p \sim \text{Beta}(1,1)$ for the mixing parameters
+* $\sigma_p \sim \mathrm{Exponential}(1)$ for the marginal standard deviations
+* $\rho_p \sim \mathrm{Beta}(1,1)$ for the mixing parameters
 * $\mu_p \sim 1$ for the overall means

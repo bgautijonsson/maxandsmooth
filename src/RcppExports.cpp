@@ -11,19 +11,14 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// chol_block
-Rcpp::List chol_block(const Eigen::VectorXd& Q_pp_vec, const Eigen::VectorXd& Q_tt_vec, const Eigen::VectorXd& Q_ff_vec, const Eigen::VectorXd& Q_pt_vec, const Eigen::VectorXd& Q_pf_vec, const Eigen::VectorXd& Q_tf_vec);
-RcppExport SEXP _maxandsmooth_chol_block(SEXP Q_pp_vecSEXP, SEXP Q_tt_vecSEXP, SEXP Q_ff_vecSEXP, SEXP Q_pt_vecSEXP, SEXP Q_pf_vecSEXP, SEXP Q_tf_vecSEXP) {
+// gradient
+Eigen::VectorXd gradient(Eigen::MatrixXd& data);
+RcppExport SEXP _maxandsmooth_gradient(SEXP dataSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type Q_pp_vec(Q_pp_vecSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type Q_tt_vec(Q_tt_vecSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type Q_ff_vec(Q_ff_vecSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type Q_pt_vec(Q_pt_vecSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type Q_pf_vec(Q_pf_vecSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type Q_tf_vec(Q_tf_vecSEXP);
-    rcpp_result_gen = Rcpp::wrap(chol_block(Q_pp_vec, Q_tt_vec, Q_ff_vec, Q_pt_vec, Q_pf_vec, Q_tf_vec));
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type data(dataSEXP);
+    rcpp_result_gen = Rcpp::wrap(gradient(data));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -39,29 +34,10 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// maxandsmooth
-Rcpp::List maxandsmooth(Eigen::MatrixXd& data, std::string& family, int x_dim, int y_dim, int n_iter, int n_burnin, int n_thin, double proposal_sd);
-RcppExport SEXP _maxandsmooth_maxandsmooth(SEXP dataSEXP, SEXP familySEXP, SEXP x_dimSEXP, SEXP y_dimSEXP, SEXP n_iterSEXP, SEXP n_burninSEXP, SEXP n_thinSEXP, SEXP proposal_sdSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< std::string& >::type family(familySEXP);
-    Rcpp::traits::input_parameter< int >::type x_dim(x_dimSEXP);
-    Rcpp::traits::input_parameter< int >::type y_dim(y_dimSEXP);
-    Rcpp::traits::input_parameter< int >::type n_iter(n_iterSEXP);
-    Rcpp::traits::input_parameter< int >::type n_burnin(n_burninSEXP);
-    Rcpp::traits::input_parameter< int >::type n_thin(n_thinSEXP);
-    Rcpp::traits::input_parameter< double >::type proposal_sd(proposal_sdSEXP);
-    rcpp_result_gen = Rcpp::wrap(maxandsmooth(data, family, x_dim, y_dim, n_iter, n_burnin, n_thin, proposal_sd));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_maxandsmooth_chol_block", (DL_FUNC) &_maxandsmooth_chol_block, 6},
+    {"_maxandsmooth_gradient", (DL_FUNC) &_maxandsmooth_gradient, 1},
     {"_maxandsmooth_ms_max", (DL_FUNC) &_maxandsmooth_ms_max, 2},
-    {"_maxandsmooth_maxandsmooth", (DL_FUNC) &_maxandsmooth_maxandsmooth, 8},
     {NULL, NULL, 0}
 };
 

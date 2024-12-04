@@ -5,8 +5,6 @@ library(evd)
 
 model_stations <- bggjphd::stations |>
   filter(
-    proj_x <= 20,
-    proj_y <= 20
   )
 
 model_precip <- bggjphd::precip |>
@@ -23,19 +21,24 @@ tictoc::toc()
 
 
 
-# exp(results[, 1]) |> range()
-# exp(results[, 2] + results[, 1]) |> range()
-# plogis(results[, 3]) |> range()
-
 plot_dat <- tibble(
-  psi = results$mles[, 1],
-  tau = results$mles[, 2],
-  phi = results$mles[, 3],
-  gamma = results$mles[, 4],
-  mu = exp(psi),
-  sigma = exp(tau + psi),
-  xi = plogis(phi)
-) |>
+  value = results$eta_hat,
+  name = rep(
+    c("psi", "tau", "phi", "gamma"),
+    each = nrow(model_stations)
+  ),
+  station = rep(
+    seq_len(nrow(model_stations)),
+    times = 4
+  )
+) |> 
+  pivot_wider() |> 
+  mutate(
+    mu = exp(psi),
+    sigma = exp(tau + psi),
+    xi = plogis(phi),
+    delta = 0.05 * plogis(gamma)
+  ) |>
   mutate(
     station = model_stations$station,
     proj_x = model_stations$proj_x,
@@ -67,4 +70,12 @@ plot_dat |>
 
 plot_dat |>
   ggplot(aes(proj_x, proj_y, fill = xi)) +
+  geom_raster()
+
+plot_dat |>
+  ggplot(aes(proj_x, proj_y, fill = gamma)) +
+  geom_raster()
+
+plot_dat |>
+  ggplot(aes(proj_x, proj_y, fill = delta)) +
   geom_raster()
