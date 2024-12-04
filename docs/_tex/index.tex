@@ -1,0 +1,437 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  letterpaper,
+  DIV=11,
+  numbers=noendperiod]{scrartcl}
+
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else  
+    % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+\KOMAoption{captions}{tableheading}
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Applying Max-and-Smooth to the UKCP data},
+  pdfauthor={Brynjólfur Gauti Guðrúnar Jónsson},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{Applying Max-and-Smooth to the UKCP data}
+\author{Brynjólfur Gauti Guðrúnar Jónsson}
+\date{2024-12-04}
+
+\begin{document}
+\maketitle
+
+
+\section{Introduction}\label{introduction}
+
+This document describes the implementation of the Max-and-Smooth
+algorithm for fast approximate Bayesian inference in spatial extreme
+value analysis of climate projections provided by the UKCP. The
+algorithm is specifically applied to Generalized Extreme Value (GEV)
+distributions and is implemented in C++ with R interfaces using Rcpp and
+RcppEigen as well as Stan.
+
+\subsection{Package Overview}\label{package-overview}
+
+The \texttt{maxandsmooth} R package provides tools for fast approximate
+Bayesian inference for spatial GEV models. The core of the package is
+implemented in C++ for efficiency, with R wrappers for ease of use.
+
+Key features of the package include:
+
+\begin{itemize}
+\tightlist
+\item
+  Implementation of the Max-and-Smooth algorithm
+\item
+  Efficient C++ code using automatic differentiation and Eigen
+\item
+  Spatial modeling of GEV parameters using Stan's efficient HMC sampler
+\item
+  R interface for easy integration into existing extreme value analysis
+  workflows
+\end{itemize}
+
+\subsection{Algorithm Description}\label{algorithm-description}
+
+The Max-and-Smooth algorithm, as applied to spatial GEV models, consists
+of two main steps:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Max Step}: Maximum likelihood estimation of GEV parameters at
+  each spatial location using C++
+\item
+  \textbf{Smooth Step}: Spatial smoothing of the maximum likelihood
+  estimates using a BYM2 model implemented in Stan
+\end{enumerate}
+
+The algorithm treats the ML estimates as sufficient statistics for a
+latent Gaussian field, providing a fast approximation to full Bayesian
+inference for spatial extreme value models.
+
+\subsection{Code Structure}\label{code-structure}
+
+The package is organized into several key files:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \texttt{src/max.cpp}: Implements the Max step (maximum likelihood
+  estimation for GEV)
+\item
+  \texttt{src/gev.cpp}: Implements GEV-specific functions for likelihood
+  and gradient calculations
+\item
+  \texttt{Stan/stan\_smooth\_bym2.stan} Implements the Smooth step using
+  Stan
+\end{enumerate}
+
+\section{Max Step}\label{max-step}
+
+The Max step involves computing location-wise maximum likelihood
+estimates (MLEs) for the GEV model parameters. This step is performed
+independently for each location, treating the data as if it were
+independent across locations.
+
+\subsection{Data Structure}\label{data-structure}
+
+The input data Y, calculated from the UKCP, is structured as a matrix,
+where:
+
+\begin{itemize}
+\tightlist
+\item
+  Rows represent observations of hourly maximum rainfall in yearly
+  blocks
+\item
+  Columns represent different spatial locations over Great Britain.
+\end{itemize}
+
+\subsection{Maximum Likelihood
+Estimation}\label{maximum-likelihood-estimation}
+
+For each location (column in Y), we compute the MLEs for the three GEV
+parameters: location \((\mu)\), scale \((\sigma)\), and shape \((\xi)\).
+The log-likelihood function for the GEV distribution at a single
+location is:
+
+\[
+\ell(\mu, \sigma, \xi | y) = -n\log\sigma - (1+\frac{1}{\xi})\sum_{i=1}^n \log\left(1+\xi\frac{y_i-\mu}{\sigma}\right) - \sum_{i=1}^n \left(1+\xi\frac{y_i-\mu}{\sigma}\right)^{-1/\xi}
+\]
+
+where \(n\) is the number of observations at the location.
+
+The MLEs are obtained by maximizing this likelihood function with
+respect to the parameters:
+
+\[
+(\hat{\mu}_i, \hat{\sigma}_i, \hat{\xi}_i) = \arg\max_{(\mu, \sigma, \xi)} \ell(\mu, \sigma, \xi | Y_i)
+\]
+
+where \(Y_i\) is the data for location \(i\).
+
+\subsubsection{Link Functions}\label{link-functions}
+
+Instead of directly maximizing the likelihood with the original
+parameters, we transform the parameters using a link function
+
+\[
+\left(\psi, \tau, \phi\right) = h(\mu, \sigma, \xi) = \left(\log(\mu), \log(\sigma) - \log(\mu), \text{logit}(\xi)\right)
+\]
+
+\subsection{Implementation}\label{implementation}
+
+The maximization is performed using numerical optimization techniques.
+In our C++ implementation, we use the following approach:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Parameters are transformed with a link function
+\item
+  The negative log-likelihood and its gradient are computed on the
+  unconstrained scale
+\item
+  A numerical optimizer is used to find the MLEs as well as the Hessians
+  at each location's optimum.
+\end{enumerate}
+
+The output of this step includes:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  A vector of parameter estimates, \(\hat\eta\), ordered such that each
+  station's location parameter appears first, followed by scale
+  parameters, then shape parameters:
+
+  \[
+  \hat{\eta} = (\hat{\psi}_1, \ldots, \hat{\psi}_n, \hat{\tau}_1, \ldots, \hat{\tau}_n, \hat{\phi}_1, \ldots, \hat{\phi}_n)^T
+  \]
+
+  where \(n\) is the number of stations.
+\item
+  A precision matrix, \(Q_{\eta y}\), constructed from the negative
+  Hessians of the log-likelihood at the MLE estimates. Due to the
+  parameter ordering in \(\hat\eta\), \(Q_{\eta y}\) can be described as
+  a 3×3 block matrix:
+
+  \[
+  Q_{\eta y} = \begin{bmatrix}
+  Q_{\psi\psi} & Q_{\psi\tau} & Q_{\psi\phi} \\
+  Q_{\tau\psi} & Q_{\tau\tau} & Q_{\tau\phi} \\
+  Q_{\phi\psi} & Q_{\psi\tau} & Q_{\phi\phi}
+  \end{bmatrix}
+  \]
+
+  where each block \(Q_{ij}\) is an \(n \times n\) diagonal matrix. The
+  diagonal elements of \(Q_{ii}\) correspond to the negative second
+  derivatives of the log-likelihood with respect to the \(i\)-th
+  parameter at each station. The off-diagonal blocks \(Q_{ij}\) (where
+  \(i \neq j\)) contain the negative mixed partial derivatives of the
+  log-likelihood with respect to the \(i\)-th and \(j\)-th parameters.
+
+  For example, the elements of \(Q_{\psi\psi}\) are the conditional
+  precisions of the location parameters:
+
+  \[
+  \begin{aligned}
+  Q_{\psi\psi} &=  \text{diag}\left(\tau^{\psi\psi}_1, \dots, \tau^{\psi\psi}_n\right)\\
+  &= \text{diag}\left(-\frac{\partial^2 \ell(Y_1|\psi_1,\tau_1,\phi_1)}{\partial \psi_1^2}, \ldots, -\frac{\partial^2 \ell(Y_n|\psi_n,\tau_n,\phi_n)}{\partial \psi_n^2}\right),
+  \end{aligned}
+  \]
+
+  and the elements of \(Q_{\mu\xi}\) are the conditional dependencies
+  between the location and shape parameters:
+
+  \[
+  \begin{aligned}
+  Q_{\psi\phi} &= \text{diag}\left(\tau^{\psi\phi}_1, \dots, \tau^{\psi\phi}_n\right) \\
+  &= \text{diag}\left(-\frac{\partial^2 \ell(Y_1|\psi_1,\tau_1,\phi_1)}{\partial \psi_1\partial \phi_1}, \ldots, -\frac{\partial^2 \ell(Y_n|\psi_n,\tau_n,\phi_n)}{\partial \psi_n\partial \phi_n}\right)
+  \end{aligned}
+  \]
+\end{enumerate}
+
+This structure reflects the independence assumption between stations in
+the Max step, while capturing the parameter dependencies within each
+station. The outputs, \(\hat \eta\) and \(Q_{\eta y}\), serve as inputs
+into the Smooth step.
+
+\section{Smooth Step}\label{smooth-step}
+
+The Smooth step involves Bayesian inference on a latent Gaussian field,
+using the maximum likelihood estimates from the Max step as data. We
+implement this step using Stan, which provides efficient Hamiltonian
+Monte Carlo sampling.
+
+\subsection{Model Structure}\label{model-structure}
+
+Let \(\eta\) be the latent field of parameters, and \(\hat{\eta}\) be
+the maximum likelihood estimates from the Max step. The model follows a
+BYM2 (Besag-York-Mollié) structure, which decomposes the spatial effect
+into structured and unstructured components:
+
+For each parameter \(p \in \{\psi, \tau, \phi\}\):
+
+\[
+\eta_p = \mu_p + \sigma_p\left(\eta^{\text{spatial}}_p\sqrt{\frac{\rho_p}{c}} + \eta^{\text{random}}_p\sqrt{1-\rho_p}\right)
+\]
+
+where:
+
+\begin{itemize}
+\tightlist
+\item
+  \(\mu_p\) is the overall mean for parameter \(p\)
+\item
+  \(\sigma_p\) is the marginal standard deviation
+\item
+  \(\rho_p\) is the mixing parameter determining the balance between
+  spatial and random effects
+\item
+  \(c\) is a scaling factor that ensures the marginal variance of the
+  spatial component is approximately 1
+\item
+  \(\eta^{\text{spatial}}_p\) follows an intrinsic conditional
+  autoregressive (ICAR) prior
+\item
+  \(\eta^{\text{random}}_p\) follows a standard normal distribution
+\end{itemize}
+
+\subsubsection{Data Level}\label{data-level}
+
+The data level models the relationship between the observed maximum
+likelihood estimates \(\hat{\eta}\) and the true latent field \(\eta\)
+using a multivariate normal distribution with precision matrix
+\(Q_{\eta y}\) from the Max step:
+
+\[\hat{\eta} | \eta \sim N(\eta, Q_{\eta y}^{-1})\]
+
+The precision matrix \(Q_{\eta y}\) is passed to Stan in a sparse
+representation and a custom likelihood function for multivariate
+Gaussian distributions with know Cholesky decomposed precision matrix is
+used.
+
+\subsubsection{Prior Distributions}\label{prior-distributions}
+
+The model uses the following prior distributions: what
+
+\begin{itemize}
+\tightlist
+\item
+  \(\sigma_p \sim \text{Exponential}(1)\) for the marginal standard
+  deviations
+\item
+  \(\rho_p \sim \text{Beta}(1,1)\) for the mixing parameters
+\item
+  \(\mu_p \sim 1\) for the overall means
+\end{itemize}
+
+
+
+
+\end{document}

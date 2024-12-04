@@ -7,7 +7,7 @@ date: last-modified
 
 # Introduction
 
-This document describes the implementation of the Max-and-Smooth algorithm for fast approximate Bayesian inference in spatial extreme value analysis of climate projections provided by the UKCP. The algorithm is specifically applied to Generalized Extreme Value (GEV) distributions and is implemented in C++ with R interfaces using Rcpp and RcppEigen.
+This document describes the implementation of the Max-and-Smooth algorithm for fast approximate Bayesian inference in spatial extreme value analysis of climate projections provided by the UKCP. The algorithm is specifically applied to Generalized Extreme Value (GEV) distributions and is implemented in C++ with R interfaces using Rcpp and RcppEigen as well as Stan.
 
 ## Package Overview
 
@@ -15,17 +15,17 @@ The `maxandsmooth` R package provides tools for fast approximate Bayesian infere
 
 Key features of the package include:
 
-- Implementation of the Max-and-Smooth algorithm for GEV distributions
-- Efficient C++ code using Eigen for linear algebra operations
-- Spatial modeling of GEV parameters using Intrinsic Conditional Autoregressive (ICAR) priors
+- Implementation of the Max-and-Smooth algorithm
+- Efficient C++ code using automatic differentiation and Eigen
+- Spatial modeling of GEV parameters using Stan's efficient HMC sampler
 - R interface for easy integration into existing extreme value analysis workflows
 
 ## Algorithm Description
 
 The Max-and-Smooth algorithm, as applied to spatial GEV models, consists of two main steps:
 
-1. **Max Step**: Maximum likelihood estimation of GEV parameters at each spatial location
-2. **Smooth Step**: Spatial smoothing of the maximum likelihood estimates using a latent Gaussian field
+1. **Max Step**: Maximum likelihood estimation of GEV parameters at each spatial location using C++
+2. **Smooth Step**: Spatial smoothing of the maximum likelihood estimates using a BYM2 model implemented in Stan
 
 The algorithm treats the ML estimates as sufficient statistics for a latent Gaussian field, providing a fast approximation to full Bayesian inference for spatial extreme value models.
 
@@ -34,9 +34,8 @@ The algorithm treats the ML estimates as sufficient statistics for a latent Gaus
 The package is organized into several key files:
 
 1. `src/max.cpp`: Implements the Max step (maximum likelihood estimation for GEV)
-2. `src/smooth.cpp`: Implements the Smooth step (latent Gaussian field smoothing)
-3. `src/maxandsmooth.cpp`: Ties together the Max and Smooth steps
-4. `src/gev.cpp`: Implements GEV-specific functions for likelihood and gradient calculations
+2. `src/gev.cpp`: Implements GEV-specific functions for likelihood and gradient calculations
+3. `Stan/stan_smooth_bym2.stan` Implements the Smooth step using Stan
 
 # Max Step
 
@@ -127,562 +126,39 @@ This structure reflects the independence assumption between stations in the Max 
 
 # Smooth Step
 
-The Smooth step involves Bayesian inference on a latent Gaussian field, using the maximum likelihood estimates from the Max step as data.
+The Smooth step involves Bayesian inference on a latent Gaussian field, using the maximum likelihood estimates from the Max step as data. We implement this step using Stan, which provides efficient Hamiltonian Monte Carlo sampling.
 
 ## Model Structure
 
-Let $\eta$ be the latent field of parameters, and $\hat{\eta}$ be the maximum likelihood estimates from the Max step. The model is structured as follows:
+Let $\eta$ be the latent field of parameters, and $\hat{\eta}$ be the maximum likelihood estimates from the Max step. The model follows a BYM2 (Besag-York-Mollié) structure, which decomposes the spatial effect into structured and unstructured components:
 
-1. Data level: $\hat{\eta} | \eta \sim N(\eta, Q_{\eta y}^{-1})$
-2. Latent level: $\eta | \tau_\eta \sim N(0, Q_\eta^{-1})$
-3. Hyperparameter level: $\tau_\eta \sim \pi(\tau_\eta)$
+For each parameter $p \in \{\psi, \tau, \phi\}$:
 
-where $Q_{\eta y}$ is the precision matrix from the Max step, and $Q_\eta$ is the precision matrix of the latent field, parameterized by hyperparameters $\tau_\eta$.
+$$
+\eta_p = \mu_p + \sigma_p\left(\eta^{\text{spatial}}_p\sqrt{\frac{\rho_p}{c}} + \eta^{\text{random}}_p\sqrt{1-\rho_p}\right)
+$$
+
+where:
+
+* $\mu_p$ is the overall mean for parameter $p$
+* $\sigma_p$ is the marginal standard deviation
+* $\rho_p$ is the mixing parameter determining the balance between spatial and random effects
+* $c$ is a scaling factor that ensures the marginal variance of the spatial component is approximately 1
+* $\eta^{\text{spatial}}_p$ follows an intrinsic conditional autoregressive (ICAR) prior
+* $\eta^{\text{random}}_p$ follows a standard normal distribution
 
 ### Data Level
 
-The data level models the relationship between the observed maximum likelihood estimates $\hat{\eta}$ and the true latent field $\eta$:
+The data level models the relationship between the observed maximum likelihood estimates $\hat{\eta}$ and the true latent field $\eta$ using a multivariate normal distribution with precision matrix $Q_{\eta y}$ from the Max step:
 
 $$\hat{\eta} | \eta \sim N(\eta, Q_{\eta y}^{-1})$$
 
-Here, $Q_{\eta y}$ is the precision matrix obtained from the Max step, representing the uncertainty in the MLE estimates. This can be thought of as using the outputs of the Max step as sufficient statistics for the observed data.
+The precision matrix $Q_{\eta y}$ is passed to Stan in a sparse representation and a custom likelihood function for multivariate Gaussian distributions with know Cholesky decomposed precision matrix is used.
 
-### Latent Level
+### Prior Distributions
 
-The latent level models the spatial structure of the parameter field:
-$$
-\eta | \tau_\eta \sim N(0, Q_\eta^{-1})
-$$
+The model uses the following prior distributions: what
 
-Here, $Q_\eta$ is a block diagonal precision matrix that encodes the spatial dependence structure of the latent field. The block diagonal structure reflects the assumption of independence between different parameters, while allowing for spatial correlation within each parameter field.
-The precision matrix $Q_\eta$ is constructed as follows:
-
-$$
-Q_\eta = \begin{bmatrix}
-\tau_\psi Q_{\text{prior}} & 0 & 0 \\
-0 & \tau_\tau Q_{\text{prior}} & 0 \\
-0 & 0 & \tau_\phi Q_{\text{prior}}
-\end{bmatrix}
-$$
-
-where
-
-$$
-\begin{aligned}
-Q_{\text{prior}} &= I \otimes R + R \otimes I \\
-R &= \begin{bmatrix}
-2 & -1 \\
--1 & 2 & -1 \\
-& -1 & 2 & -1 \\
-& & \vdots & \vdots & \vdots \\
-& & & -1 & 2 & -1 \\
-& & & & -1 & 2 & -1 \\
-& & & & & -1 & 2
-\end{bmatrix}
-\end{aligned}
-$$
-
-and $\tau_\eta = \left(\tau_\psi, \tau_\tau, \tau_\phi\right)^T$ are the hyperparameters controlling the strength of spatial dependence for each parameter.
-
-### Hyperparameter Level
-
-The hyperparameters $\tau_\eta$ are assigned prior distributions. 
-
-## MCMC Sampling
-
-The Smooth step uses Metropolis-Hastings MCMC to sample from this posterior. The algorithm alternates between:
-
-1. Proposing new hyperparameters $\tau_\eta^*$
-2. Accepting or rejecting the proposal based on the Metropolis-Hastings ratio
-3. Sampling a new latent field $\eta^*$ conditional on $\tau_\eta^*$
-
-### Proposing new hyperparameters
-
-### Caltulating the Metropolis-Hastings Ratio
-
-The marginal posterior density of $\tau_\eta$ given $\hat \eta$ is $\pi(\tau_\eta\vert\hat\eta) \propto \pi(\tau_\eta)\pi(\hat\eta\vert\tau_\eta)$ and it can be represented as
-
-$$
-\pi(\tau_\eta \vert \hat \eta) \propto \pi(\tau_\eta) \frac{\pi(\hat \eta \vert \eta, \tau_\eta)\pi(\eta \vert \tau_\eta)}{\pi(\eta \vert \hat \eta, \tau_\eta)},
-$$
-
-using the fact that $\pi(\hat\eta \vert \tau_\eta)\pi(\eta\vert\hat\eta, \tau_\eta) = \pi(\hat\eta\vert\eta,\tau_\eta)\pi(\eta\vert\tau_\eta)$. The densities on the right hand contain $\eta$, but since the density is independent of $\eta$ we can choose any value for $\eta$ *(for example 0)* when calculating the marginal posterior of $\tau_\eta$. In the following, we will show the densities when $\eta = 0$
-
-#### $\pi(\hat \eta \vert \eta, \tau_\eta)$
-
-This is a normal distribution:
-
-$$
-\hat\eta\vert\eta, \tau_\eta \sim \mathrm{N}(\eta, Q_{\eta y}).
-$$
-
-Up to a proportionality constant, this evaluates to
-
-$$
-\frac12 \left(\log\vert Q_{\eta y}\vert - (\hat \eta - \eta)^TQ_{\eta y}(\hat \eta - \eta)\right)
-$$
-
-Since we can choose $\eta = 0$, we get
-
-$$
-\frac12 \left(\log\vert Q_{\eta y}\vert - \hat \eta^TQ_{\eta y}\hat \eta\right),
-$$
-
-A value that is completely independent of $\eta$ and $\tau_eta$. This means we can pre-compute it only once and store the values.
-
-#### $\pi(\eta \vert \tau_\eta)$
-
-$$
-\eta \vert \tau_\eta \sim \mathrm{N}(0, Q_\eta)
-$$
-
-Up to a proportionality constant, this evaluates to
-
-$$
-\frac12\left(\log\vert Q_\eta\vert - \eta^TQ_\eta\eta\right)
-$$
-
-Choosing $\eta = 0$, this simplifies to
-
-$$
-\frac12\log\vert Q_\eta\vert = \frac12  \sum_{i=1}^3\log\vert \tau_i Q_\text{prior}\vert =
-\frac12  \left(3 \log\vert Q_\text{prior}\vert + \sum_{i=1}^3 n\log \tau_i\right)
-$$
-
-We can precompute the determinant of $Q_\text{prior}$ and perform these calculations efficiently
-
-#### $\pi(\eta \vert \hat \eta, \tau_\eta)$
-
-$$
-\eta \vert \hat\eta, \tau_\eta \sim \mathrm{N}(\mu_\text{post}, Q_\text{post})
-$$
-
-where
-
-$$
-Q_{\text{post}} = Q_{\eta y} + Q_\eta
-\qquad
-\text{and}
-\qquad
-\mu_{\text{post}} = Q_{\text{post}}^{-1}\hat b_{\eta y}.
-$$
-
-Up to a proportionality constant, this becomes
-
-$$
-\frac12\left(\log\vert Q_\text{post}\vert - (\eta - \mu_\text{post})^TQ_\text{post}(\eta - \mu_\text{post}) \right)
-$$
-
-Choosing $\eta = 0$, we get
-
-$$
-\frac12\left(\log\vert Q_\text{post}\vert - \mu_\text{post}^TQ_\text{post}\mu_\text{post} \right)
-$$
-
-but
-
-$$
-\mu_\text{post}^TQ_\text{post}\mu_\text{post} = (Q_\text{post}^{-1}\hat b_{\eta y})^T Q_\text{post}(Q_\text{post}^{-1}\hat b_{\eta y}) = \hat b_{\eta y}^TQ_\text{post}^{-1}\hat b_{\eta y}
-$$
-
-Writing this up using the Cholesky factor, $L_\text{post}$ of $Q_\text{post}$, we get
-
-$$
-\hat b_{\eta y}^TQ_\text{post}^{-1}\hat b_{\eta y} = \hat b_{\eta y}^T(L_\text{post} L_\text{post}^T)^{-1}\hat b_{\eta y} = \vert\vert L_\text{post}^{-1}\hat b_{\eta y}\vert\vert
-$$
-
-This means that to calculate this density, we must first compute $L_\text{post}$, then compute $\vert\vert y\vert \vert$, where
-
-$$
-L_\text{post}y = \hat b_{\eta y}
-$$
-
-This can be efficiently computed using the block-Cholesky methods described in the appendix.
-
-#### $\log \pi(\tau_\eta \vert \hat \eta) - \log \pi(\tau_\eta^* \vert \hat \eta)$
-
-In practice, we are not exactly interested in the marginal posterior, $\pi(\tau_\eta \vert \hat \eta)$. Rather, we want to know the value of
-
-$$
-\begin{aligned}
-\log \pi(\tau_\eta \vert \hat \eta) - \log \pi(\tau_\eta^* \vert \hat \eta) &= 
-\left( \log\pi(\tau_\eta) - \log\pi(\tau_\eta^*) \right)  \\ 
-&+\left( \log\pi(\hat \eta \vert \eta, \tau_\eta) - \log\pi(\hat \eta \vert \eta, \tau_\eta^*) \right) \\
-&+ \left( \log\pi(\eta \vert \tau_\eta) - \log \pi(\eta \vert \tau_\eta^*) \right) \\
-&+ \left( \log \pi(\eta \vert \hat \eta, \tau_\eta) - \log \pi(\eta \vert \hat \eta, \tau_\eta^*) \right)
-\end{aligned}
-$$
-
-In particular, since $\log\pi(\hat \eta \vert \eta, \tau_\eta)$ is independent of $\tau_\eta$, this cancels out.
-
-Similarly
-
-$$
-\log\pi(\eta \vert \tau_\eta) - \log \pi(\eta \vert \tau_\eta^*) = \frac{n}{2}\sum_{i=1}^3 \log \tau_i - \log \tau_i^*
-$$
-
-The conditional posterior of $\eta | \hat\eta, \tau_\eta$ becomes
-
-$$
-\log \pi(\eta \vert \hat \eta, \tau_\eta) - \log \pi(\eta \vert \hat \eta, \tau_\eta^*) = 
-\sum_{i=1}^{3n} L_{[i,i] \text{post}} - \sum_{i=1}^{3n}L_{[i,i] \text{post}}^*  - 
-\frac12\left( \vert\vert L_\text{post}^{-1}\hat b_{\eta y}\vert\vert - \vert\vert L_\text{post}^{*-1}\hat b_{\eta y}\vert\vert  \right)
-$$
-
-Alltogether, this leaves us with:
-
-$$
-\begin{aligned}
-\log \pi(\tau_\eta \vert \hat \eta) - \log \pi(\tau_\eta^* \vert \hat \eta) &= 
-\left( \log\pi(\tau_\eta) - \log\pi(\tau_\eta^*) \right)  \\ 
-&+ \frac{n}{2}\sum_{i=1}^3\left( \log \tau_i - \log \tau_i^*\right) \\
-&+ \sum_{i=1}^{3n} L_{[i,i] \text{post}} - \sum_{i=1}^{3n}L_{[i,i] \text{post}}^* \\
-&- \frac12\left( \vert\vert L_\text{post}^{-1}\hat b_{\eta y}\vert\vert - \vert\vert L_\text{post}^{*-1}\hat b_{\eta y}\vert\vert  \right)
-\end{aligned} 
-$$
-
-### Latent Field Sampling
-
-The latent field is sampled from the conditional normal distribution
-
-$$
-\eta \vert \hat\eta, \tau_\eta \sim \mathrm{N}(\mu_{\text{post}}, Q_{\text{post}}),
-$$
-
-where
-
-$$
-Q_{\text{post}} = Q_{\eta y} + Q_\eta
-\qquad
-\text{and}
-\qquad
-\mu_{\text{post}} = Q_{\text{post}}^{-1}Q_{\eta y}\hat\eta.
-$$
-
-The first thing we can do to make these calculations faster is to precompute $\hat b_{\eta y} = Q_{\eta y} \hat \eta$ between the Max step and the Smooth step, giving us
-
-$$
-Q_{\text{post}} = Q_{\eta y} + Q_\eta
-\qquad
-\text{and}
-\qquad
-\mu_{\text{post}} = Q_{\text{post}}^{-1}\hat b_{\eta y}.
-$$
-
-The most efficient way to sample from this posterior is to calculate the Cholesky decomposition 
-
-$$
-Q_{\text{post}} = L_{\text{post}}L_{\text{post}}^T,
-$$
-
-and using that to solve for $\mu_\text{post}$ in
-
-$$
-L_{\text{post}}L_{\text{post}}^T \mu_\text{post} = \hat b_{\eta y}.
-$$
-
-After that, we sample from the latent field by generating a standard normal random vector $z \sim \mathrm N(0, I)$ and using forward substitution to calculate:
-
-$$
-\eta^* = \mu_\text{post} + L_\text{post}^{-1}z
-$$
-
-### Algorithm
-
-All in all, this leaves us with the following steps to efficiently draw from the posterior:
-
-**Initialization**
-
-1. Initialize $\tau_\eta$ and $\eta$ to sensible values.
-2. Compute $L_\text{post}$ using Block-Cholesky algorithm and store it.
-3. Compute $y$ by solving $L_\text{post}y = \hat b_{\eta y}$ and store it.
-4. Compute $\mu_\text{post}$ by solving $L_\text{post}^T\mu_\text{post} = y$ and store it.
-5. Compute $\frac12\log\vert Q_\text{post}\vert = \sum_{i=1}^{3n} L_{[i,i] \text{post}}$ and store it
-
-**Sampling**
-
-For each iteration:
-
-1. Propose $\tau_\eta^*$
-2. Compute $L_\text{post}^*$ using Block-Cholesky algorithm and store it.
-3. Compute $y^*$ by solving $L_\text{post}^*y = \hat b_{\eta y}$ and store it.
-5. Compute $\frac12\log\vert Q_\text{post}^*\vert = \sum_{i=1}^{3n} L_{[i,i] \text{post}}^*$ and store it
-4. Compute the log-acceptance ratio $\log \pi(\tau_\eta \vert \hat \eta) - \log(\tau_\eta^*\vert \hat \eta)$ and accept/reject the proposed $\tau_\eta^*$
-5. If $\tau_\eta^*$ is accepted:
-    i. Set $L_\text{post} = L_\text{post}^*$, $y = y^*$ and $\frac12\log\vert Q_\text{post}\vert = \frac12\log\vert Q_\text{post}^*\vert$
-    ii. Compute $\mu_\text{post}$ by solving $L_\text{post}^T\mu_\text{post} = y$ and store it.
-    iii. Sample from the latent field using the new values of $\mu_\text{post}$ and $L_\text{post}$
-6. If $\tau_\eta^*$ is rejected:
-    i. Sample from the latent field using the stored values of $\mu_\text{post}$ and $L_\text{post}$
-
-# Appendix {.appendix}
-
-## Computing $L_\text{post}$
-
-We first write out $Q_\text{post}$ as
-
-$$
-Q_\text{post} = \begin{bmatrix}
-Q_{\psi\psi} + \tau_\psi Q_\text{prior} & Q_{\psi\tau} & Q_{\psi\phi} \\
-Q_{\tau\psi} & Q_{\tau\tau} + \tau_\tau Q_\text{prior} & Q_{\tau\phi} \\
-Q_{\phi\psi} & Q_{\phi\tau} & Q_{\phi\phi} + \tau_\phi Q_\text{prior},
-\end{bmatrix}
-$$
-
-where each block on the diagonal has bandwidth 3 and all the off-diagonal blocks are diagonal matrices. Keep in mind that since the off-diagonal blocks are diagonal matrices we have that $Q_{\psi\tau} = Q_{\tau\psi}$, $Q_{\psi\phi} = Q_{\phi\psi}$ and $Q_{\tau\phi} = Q_{\phi\tau}$. 
-
-We want to calculate the Cholesky decomposition $Q_\text{post} = L_\text{post}L_\text{post}^T$, where
-
-$$
-\begin{aligned}
-Q_\text{post} &= \begin{bmatrix}
-Q_{\psi\psi} + \tau_\psi Q_\text{prior} & Q_{\psi\tau} & Q_{\psi\phi} \\
-Q_{\tau\psi} & Q_{\tau\tau} + \tau_\tau Q_\text{prior} & Q_{\tau\phi} \\
-Q_{\phi\psi} & Q_{\phi\tau} & Q_{\phi\phi} + \tau_\phi Q_\text{prior},
-\end{bmatrix} \\
-&=
-\begin{bmatrix}
-L_{11} & 0 & 0 \\
-L_{21} & L_{22} & 0 \\
-L_{31} & L_{32} & L_{33},
-\end{bmatrix}
-\begin{bmatrix}
-L_{11} & L_{21}^T & L_{31}^T \\
-0 & L_{22} & L_{32}^T \\
-0 & 0 & L_{33},
-\end{bmatrix} \\
-&= \begin{bmatrix}
-L_{11}L_{11}^T & L_{11}L_{21}^T & L_{11}L_{31}^T  \\
-L_{21}L_{11}^T & L_{21}L_{21}^T + L_{22}L_{22}^T & L_{21}L_{31} + L_{22}L_{32}^T \\
-L_{31}L_{11}^T & L_{31}L_{21}^T + L_{32}L_{22}^T & L_{31}L_{31}^T + L_{32}L_{32}^T + L_{33}L_{33}^T
-\end{bmatrix}.
-\end{aligned}
-$$
-
-We do this efficiently using a block-Cholesky factorization. First, let's write up how the blocks of $L_\text{post}$ connect to the blocks of $Q_\text{post}$:
-
-$$
-\begin{aligned}
-Q_{\psi\psi} + \tau_\psi Q_\text{prior} &= L_{11}L_{11}^T \\
-Q_{\psi\tau} &=L_{21}L_{11}^T = L_{11}L_{21}^T \\
-Q_{\psi\phi} &= L_{31}L_{11}^T = L_{11}L_{31}^T \\
-Q_{\tau\tau} + \tau_\tau Q_\text{prior} &= L_{21}L_{21}^T + L_{22}L_{22}^T \\
-Q_{\tau\phi} &= L_{31}L_{21}^T + L_{32}L_{22}^T = L_{21}L_{31} + L_{22}L_{32}^T \\
-Q_{\phi\phi} &= L_{31}L_{31}^T + L_{32}L_{32}^T + L_{33}L_{33}^T
-\end{aligned}
-$$
-
-Re-arranging, we can write out our efficient block-Cholesky algorithm:
-
-1. $L_{11} = \mathrm{Chol}(Q_{\psi\psi} + \tau_\psi Q_\text{prior})$
-2. $L_{21} = Q_{\psi\tau}L_{11}^{-T}$
-    - Calculate by solving $L_{11}L_{21}^T = Q_{\psi\tau}$
-3. $L_{31} = Q_{\psi\phi}L_{11}^{-T}$
-    - Calculate by solving $L_{11}L_{31}^T = Q_{\psi\tau}$
-4. $L_{22} = \mathrm{Chol}(S_{22})$
-    - $S_{22} = \left(Q_{\tau\tau} + \tau_\tau Q_\text{prior}\right) - L_{21}L_{21}^T$
-5. $L_{32} = \left(Q_{\tau\phi} - L_{31}L_{21}^T\right)L_{22}^{-T}$
-    - Calculate by solving $L_{22}L_{32}^T = Q_{\tau\phi} - L_{31}L_{21}^T$
-6. $L_{33} = \mathrm{Chol}(S_{33})$
-    - $S_{33} = \left( Q_{\phi\phi} + \tau_\phi Q_\text{prior} \right) - L_{31}L_{31}^T - L_{32}L_{32}^T$
-
-According to Theorem 4.3.1 in Golub and Van Loan, if $Q$ is a banded matrix with bandwidth b, then $L$ will also have lower bandwidth b. Thus, all our Cholesky blocks will have low bandwidth: The diagonal blocks will have lower bandwidth 2 and the off-diagonal blocks will be diagonal matrices (bandwidth 1). 
-
-The Cholesky decomposition of an $n \times n$ banded matrix with bandwidth $p << n$ involves $n(p^2 + 3p)$. Similarly, forward and backward substitution for banded matrices with $p << n$ requires about $2np$ flops. Thus, the major factor will be the bandwidth of $Q_\text{prior}$, which has bandwidth $\sqrt{n}$ as defined in the manuscript. Overall, this means we can compute $L_{post}$ in $O(n^{1.5})$ time using a block-Cholesky factorization. 
-
-## Forward Substitution: Solving $Ly = b$
-
-Partition $L$, $y$ and $b$ conformably:
-
-$$
-L_\text{post} = \begin{bmatrix}
-L_{11} & 0 & 0 \\
-L_{21} & L_{22} & 0 \\
-L_{31} & L_{32} & L_{33},
-\end{bmatrix} \qquad
-y = \begin{bmatrix}
-y_1 \\
-y_2 \\
-y_3
-\end{bmatrix} \qquad
-b = \begin{bmatrix}
-b_1 \\
-b_2 \\
-b_3
-\end{bmatrix}.
-$$
-
-### **First Block Row**
-
-$$
-L_{11} y_1 = b_1
-$$
-
-Solve for $y_1$:
-
-$$
-y_1 = L_{11}^{-1}b_1
-$$
-
-### **Second Block Row**
-
-$$
-L_{21}y_1 + L_{22}y_2 = b_2
-$$
-
-Rearranged:
-
-$$
-L_{22}y_2 = b_2 - L_{21}y_1
-$$
-
-Solve for $y_2$:
-
-$$
-y_2 = L_{22}^{-1}\left(b_2 - L_{21}y_1\right)
-$$
-
-### **Third Block Row**
-
-$$
-L_{31}y_1 + L_{32}y_2 + L_{33}y_3 = b_3
-$$
-
-Rearranged:
-
-$$
-L_{33}y_3 = b_3 - L_{31}y_1 - L_{32}y_2
-$$
-
-Solve for $y_3$:
-
-$$
-y_3 = L_{33}^{-1}\left(b_3 - L_{31}y_1 - L_{32}y_2\right)
-$$
-
-### **Combined Solution**
-
-$$
-y = \begin{bmatrix}
-y_1 \\
-y_2 \\
-y_3
-\end{bmatrix} =
-\begin{bmatrix}
- L_{11}^{-1}b_1 \\
-L_{22}^{-1}\left(b_2 - L_{21}y_1\right) \\
-L_{33}^{-1}\left(b_3 - L_{31}y_1 - L_{32}y_2\right)
-\end{bmatrix}
-$$
-
-## Backward Substitution: Solving $L^Tx = y$
-
-Partition $L^T$ and $x$ like $y$:
-
-$$
-L^T = \begin{bmatrix}
-L_{11}^T & L_{21}^T & L_{31}^T \\
-0 & L_{22}^T & L_{32}^T \\
-0 & 0 & L_{33}^T
-\end{bmatrix}, \quad
-x = \begin{bmatrix}
-x_1 \\
-x_2 \\
-x_3
-\end{bmatrix}
-$$
-
-### **Third Block Row**
-
-$$
-L_{33}^Tx_3 = y_3
-$$
-
-Solve for $x_3$
-
-$$
-x_3 = L_{33}^{-T}y_3
-$$
-
-### **Second Block Row**
-
-$$
-L_{22}^Tx_2 + L_{32}^Tx_3 = y_2
-$$
-
-Rearranged:
-
-$$
-L_{22}^Tx_2 = y_2 - L_{32}^Tx_3
-$$
-
-Solve for $x_2$
-
-$$
-x_2 = L_{22}^{-T}\left(y_2 - L_{32}^Tx_3\right)
-$$
-
-### **First Block Row**
-
-$$
-L_{11}^Tx_1 + L_{21}^Tx_2 + L_{31}^Tx_3 = y_1
-$$
-
-Rearranged:
-
-$$
-L_{11}^Tx_1 = y_1 - L_{21}^Tx_2 - L_{31}^Tx_3
-$$
-
-Solve for $x_1$:
-
-$$
-x_1 = L_{11}^{-T}\left(y_1 - L_{21}^Tx_2 - L_{31}^Tx_3\right)
-$$
-
-### **Combined Solution**
-
-$$
-x = \begin{bmatrix}
-x_1 \\
-x_2 \\
-x_3
-\end{bmatrix} =
-\begin{bmatrix}
-L_{11}^{-T}\left(y_1 - L_{21}^Tx_2 - L_{31}^Tx_3\right) \\
-L_{22}^{-T}\left(y_2 - L_{32}^Tx_3\right) \\
-L_{33}^{-T}y_3
-\end{bmatrix}
-$$
-
-## Summary of Forward-Backward Step
-
-First solve $Ly = b$:
-
-$$
-y = \begin{bmatrix}
-y_1 \\
-y_2 \\
-y_3
-\end{bmatrix} =
-\begin{bmatrix}
- L_{11}^{-1}b_1 \\
-L_{22}^{-1}\left(b_2 - L_{21}y_1\right) \\
-L_{33}^{-1}\left(b_3 - L_{31}y_1 - L_{32}y_2\right)
-\end{bmatrix}
-$$
-
-Then solve $L^Tx = y$
-
-$$
-x = \begin{bmatrix}
-x_1 \\
-x_2 \\
-x_3
-\end{bmatrix} =
-\begin{bmatrix}
-L_{11}^{-T}\left(y_1 - L_{21}^Tx_2 - L_{31}^Tx_3\right) \\
-L_{22}^{-T}\left(y_2 - L_{32}^Tx_3\right) \\
-L_{33}^{-T}y_3
-\end{bmatrix}
-$$
+* $\sigma_p \sim \text{Exponential}(1)$ for the marginal standard deviations
+* $\rho_p \sim \text{Beta}(1,1)$ for the mixing parameters
+* $\mu_p \sim 1$ for the overall means
