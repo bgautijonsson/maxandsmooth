@@ -57,7 +57,7 @@ get_scaling_factor <- function(edges, N) {
 model_stations <- bggjphd::stations |>
   filter(
     between(proj_x, 0, 70),
-    between(proj_y, 46, 133)
+    between(proj_y, 46, 136)
   )
 
 new_names <- model_stations |>
@@ -72,30 +72,31 @@ Y <- model_precip |>
   select(-year) |>
   as.matrix()
 
+n_loc <- ncol(Y)
+n_obs <- nrow(Y)
 
 tictoc::tic()
-results <- ms_max(Y, "gev")
+res <- fit_gev(Y)
 tictoc::toc()
 
+#tictoc::tic()
+#results <- ms_max(Y, "gev")
+#tictoc::toc()
 
+eta_hat <- res$parameters
 
-eta_hat <- results$eta_hat
+#Q_pp <- Diagonal(x = results$Q_psi_psi)
+#Q_tt <- Diagonal(x = results$Q_tau_tau)
+#Q_ff <- Diagonal(x = results$Q_phi_phi)
+#Q_pt <- Diagonal(x = results$Q_psi_tau)
+#Q_pf <- Diagonal(x = results$Q_psi_phi)
+#Q_tf <- Diagonal(x = results$Q_tau_phi)
+#Q1 <- cbind(Q_pp, Q_pt, Q_pf)
+#Q2 <- cbind(Q_pt, Q_tt, Q_tf)
+#Q3 <- cbind(Q_pf, Q_tf, Q_ff)
+#Q <- rbind(Q1, Q2, Q3)
 
-Q_pp <- Diagonal(x = results$Q_psi_psi)
-Q_tt <- Diagonal(x = results$Q_tau_tau)
-Q_ff <- Diagonal(x = results$Q_phi_phi)
-Q_pt <- Diagonal(x = results$Q_psi_tau)
-Q_pf <- Diagonal(x = results$Q_psi_phi)
-Q_tf <- Diagonal(x = results$Q_tau_phi)
-
-Q1 <- cbind(Q_pp, Q_pt, Q_pf)
-Q2 <- cbind(Q_pt, Q_tt, Q_tf)
-Q3 <- cbind(Q_pf, Q_tf, Q_ff)
-
-Q <- rbind(Q1, Q2, Q3)
-# Q |> image()
-
-L <- chol(Q)
+L <- res$L
 
 n_stations <- nrow(model_stations)
 

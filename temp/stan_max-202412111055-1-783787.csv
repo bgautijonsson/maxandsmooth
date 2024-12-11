@@ -1,0 +1,37 @@
+# stan_version_major = 2
+# stan_version_minor = 35
+# stan_version_patch = 0
+# model = stan_max_model
+# start_datetime = 2024-12-11 10:55:17 UTC
+# method = optimize
+#   optimize
+#     algorithm = lbfgs (Default)
+#       lbfgs
+#         init_alpha = 0.001 (Default)
+#         tol_obj = 1e-12 (Default)
+#         tol_rel_obj = 10000 (Default)
+#         tol_grad = 1e-08 (Default)
+#         tol_rel_grad = 1e+07 (Default)
+#         tol_param = 1e-08 (Default)
+#         history_size = 5 (Default)
+#     jacobian = false (Default)
+#     iter = 2000 (Default)
+#     save_iterations = false (Default)
+# id = 1 (Default)
+# data
+#   file = /var/folders/h6/tswmwqq108z_sbxzqjn17cd00000gn/T/RtmpBAGd3o/standata-c581c832eb9.json
+# init = 2 (Default)
+# random
+#   seed = 1858270992
+# output
+#   file = /Users/brynjolfurjonsson/phd/R/maxandsmooth/temp/stan_max-202412111055-1-783787.csv
+#   diagnostic_file =  (Default)
+#   refresh = 100 (Default)
+#   sig_figs = -1 (Default)
+#   profile_file = /Users/brynjolfurjonsson/phd/R/maxandsmooth/temp/stan_max-profile-202412111055-1-0ef1e2.csv
+#   save_cmdstan_config = false (Default)
+# num_threads = 1 (Default)
+# stanc_version = stanc3 v2.35.0
+# stancflags = --name=stan_max_model
+lp__,psi.1,psi.2,psi.3,psi.4,psi.5,psi.6,psi.7,psi.8,psi.9,tau.1,tau.2,tau.3,tau.4,tau.5,tau.6,tau.7,tau.8,tau.9,phi.1,phi.2,phi.3,phi.4,phi.5,phi.6,phi.7,phi.8,phi.9,mu.1,mu.2,mu.3,mu.4,mu.5,mu.6,mu.7,mu.8,mu.9,sigma.1,sigma.2,sigma.3,sigma.4,sigma.5,sigma.6,sigma.7,sigma.8,sigma.9,xi.1,xi.2,xi.3,xi.4,xi.5,xi.6,xi.7,xi.8,xi.9
+-1793.18,2.5124,2.55208,2.54476,2.51883,2.53555,2.50321,2.49823,2.52167,2.51215,-0.990784,-0.954293,-1.08566,-0.912622,-0.92077,-1.04041,-0.850063,-0.942394,-1.04276,-2.02176,-1.91921,-2.36116,-1.82002,-2.08764,-2.19068,-1.44052,-1.66547,-1.96999,12.3345,12.8338,12.7402,12.4141,12.6234,12.2217,12.161,12.4494,12.3314,4.57961,4.94208,4.30207,4.9839,5.02678,4.31804,5.19746,4.85144,4.34655,0.116937,0.12795,0.0861826,0.139432,0.110304,0.100591,0.191464,0.159029,0.12239

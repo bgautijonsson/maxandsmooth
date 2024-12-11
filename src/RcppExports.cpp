@@ -11,14 +11,14 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// gradient
-Eigen::VectorXd gradient(Eigen::MatrixXd& data);
-RcppExport SEXP _maxandsmooth_gradient(SEXP dataSEXP) {
+// fit_gev
+Rcpp::List fit_gev(Eigen::MatrixXd& data);
+RcppExport SEXP _maxandsmooth_fit_gev(SEXP dataSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type data(dataSEXP);
-    rcpp_result_gen = Rcpp::wrap(gradient(data));
+    rcpp_result_gen = Rcpp::wrap(fit_gev(data));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -36,7 +36,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_maxandsmooth_gradient", (DL_FUNC) &_maxandsmooth_gradient, 1},
+    {"_maxandsmooth_fit_gev", (DL_FUNC) &_maxandsmooth_fit_gev, 1},
     {"_maxandsmooth_ms_max", (DL_FUNC) &_maxandsmooth_ms_max, 2},
     {NULL, NULL, 0}
 };
