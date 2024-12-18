@@ -9,5 +9,6 @@ Description: This package provides fast approximate Bayesian inference for laten
 License: GPL (>= 2)
 Imports: Rcpp, RcppEigen, BH, StanHeaders, RcppParallel
 LinkingTo: Rcpp, RcppEigen, BH, StanHeaders, RcppParallel
+Depends: Matrix
 RoxygenNote: 7.3.2
 SystemRequirements: autodiff, nlopt
