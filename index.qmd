@@ -15,7 +15,7 @@ The `maxandsmooth` R package provides tools for fast approximate Bayesian infere
 
 Key features of the package include:
 
-- Implementation of the Max-and-Smooth algorithm
+- Implementation of the Max-and-Smooth algorithm with Gaussian copula dependence
 - Efficient C++ code using automatic differentiation and Eigen
 - Spatial modeling of GEV parameters using Stan's efficient HMC sampler
 - R interface for easy integration into existing extreme value analysis workflows
@@ -33,132 +33,136 @@ The algorithm treats the ML estimates as sufficient statistics for a latent Gaus
 
 The package is organized into several key files:
 
-1. `src/max.cpp`: Implements the Max step (maximum likelihood estimation for GEV)
-2. `src/gev.cpp`: Implements GEV-specific functions for likelihood and gradient calculations
+1. `src/gev_reverse_mode.cpp`: Implements the Max step (maximum likelihood estimation for GEV) assuming a known Gaussian copula
 3. `Stan/stan_smooth_bym2.stan` Implements the Smooth step using Stan
 
 # Max Step
 
-The Max step involves computing location-wise maximum likelihood estimates (MLEs) for the GEV model parameters. This step is performed independently for each location, treating the data as if it were independent across locations.
+The Max step involves computing location-wise maximum likelihood estimates (MLEs) for the GEV model parameters while accounting for spatial dependence through a Matérn-like Gaussian copula structure.
 
-## Data Structure
+## Data Structure and Model Specification 
 
-The input data Y, calculated from the UKCP, is structured as a matrix, where:
+Let $Y$ be an $n \times p$ matrix of observations where:
 
-- Rows represent observations of hourly maximum rainfall in yearly blocks
-- Columns represent different spatial locations over Great Britain.
+- Rows $(i=1,\ldots,n)$ represent temporal replicates
+- Columns $(j=1,\ldots,p)$ represent spatial locations
 
-## Maximum Likelihood Estimation
+The model combines GEV marginal distributions with a Gaussian copula:
 
-For each location (column in Y), we compute the MLEs for the three GEV parameters: location $(\mu)$, scale $(\sigma)$, and shape $(\xi)$. The log-likelihood function for the GEV distribution at a single location is:
+1. **Marginal GEV distributions**: At each location $j$, observations follow a GEV distribution:
+   $$Y_{ij} \sim \text{GEV}(\mu_j, \sigma_j, \xi_j)$$
 
-$$
-\ell(\mu, \sigma, \xi | y) = -n\log\sigma - (1+\frac{1}{\xi})\sum_{i=1}^n \log\left(1+\xi\frac{y_i-\mu}{\sigma}\right) - \sum_{i=1}^n \left(1+\xi\frac{y_i-\mu}{\sigma}\right)^{-1/\xi}
-$$
+2. **Spatial dependence**: The dependence structure is captured by transforming the observations to standard normal using the probability integral transform:
+   $$Z_{ij} = \Phi^{-1}(F_{\text{GEV}}(Y_{ij}|\mu_j,\sigma_j,\xi_j))$$
+   where $F_{\text{GEV}}$ is the GEV CDF and $\Phi^{-1}$ is the standard normal quantile function.
 
-where $n$ is the number of observations at the location.
+3. **Matérn-like precision structure**: The transformed observations follow a multivariate normal distribution with precision matrix:
+   $$Q = (Q_{\rho_1} \otimes I_{n_2} + I_{n_1} \otimes Q_{\rho_2})^{\nu+1}$$
+   where:
+   - $Q_{\rho}$ is the precision matrix of a standardized AR(1) process
+   - $\otimes$ denotes the Kronecker product
+   - $\nu$ is a smoothness parameter
+   - The matrix is scaled to ensure unit marginal variances
 
-The MLEs are obtained by maximizing this likelihood function with respect to the parameters:
+## Log-likelihood Function
 
-$$
-(\hat{\mu}_i, \hat{\sigma}_i, \hat{\xi}_i) = \arg\max_{(\mu, \sigma, \xi)} \ell(\mu, \sigma, \xi | Y_i)
-$$
+The total log-likelihood combines the GEV marginal contributions and the Gaussian copula:
 
-where $Y_i$ is the data for location $i$.
-
-### Link Functions
-
-Instead of directly maximizing the likelihood with the original parameters, we transform the parameters using a link function
-
-$$
-\left(\psi, \tau, \phi\right) = h(\mu, \sigma, \xi) = \left(\log(\mu), \log(\sigma) - \log(\mu), \text{logit}(\xi)\right)
-$$
-
-## Implementation
-
-The maximization is performed using numerical optimization techniques. In our C++ implementation, we use the following approach:
-
-1. Parameters are transformed with a link function
-2. The negative log-likelihood and its gradient are computed on the unconstrained scale
-3. A numerical optimizer is used to find the MLEs as well as the Hessians at each location's optimum.
-
-The output of this step includes:
-
-1. A vector of parameter estimates, $\hat\eta$, ordered such that each station's location parameter appears first, followed by scale parameters, then shape parameters:
-
-   $$
-   \hat{\eta} = (\hat{\psi}_1, \ldots, \hat{\psi}_n, \hat{\tau}_1, \ldots, \hat{\tau}_n, \hat{\phi}_1, \ldots, \hat{\phi}_n)^T
-   $$
-
-   where $n$ is the number of stations.
-
-2. A precision matrix, $Q_{\eta y}$, constructed from the negative Hessians of the log-likelihood at the MLE estimates. Due to the parameter ordering in $\hat\eta$, $Q_{\eta y}$ can be described as a 3×3 block matrix:
-
-   $$
-   Q_{\eta y} = \begin{bmatrix}
-   Q_{\psi\psi} & Q_{\psi\tau} & Q_{\psi\phi} \\
-   Q_{\tau\psi} & Q_{\tau\tau} & Q_{\tau\phi} \\
-   Q_{\phi\psi} & Q_{\psi\tau} & Q_{\phi\phi}
-   \end{bmatrix}
-   $$
-
-   where each block $Q_{ij}$ is an $n \times n$ diagonal matrix. The diagonal elements of $Q_{ii}$ correspond to the negative second derivatives of the log-likelihood with respect to the $i$-th parameter at each station. The off-diagonal blocks $Q_{ij}$ (where $i \neq j$) contain the negative mixed partial derivatives of the log-likelihood with respect to the $i$-th and $j$-th parameters. 
-
-   For example, the elements of $Q_{\psi\psi}$ are the conditional precisions of the location parameters:
-
-   $$
-   \begin{aligned}
-   Q_{\psi\psi} &=  \text{diag}\left(\tau^{\psi\psi}_1, \dots, \tau^{\psi\psi}_n\right)\\
-   &= \text{diag}\left(-\frac{\partial^2 \ell(Y_1|\psi_1,\tau_1,\phi_1)}{\partial \psi_1^2}, \ldots, -\frac{\partial^2 \ell(Y_n|\psi_n,\tau_n,\phi_n)}{\partial \psi_n^2}\right),
-   \end{aligned}
-   $$
-
-   and the elements of $Q_{\mu\xi}$ are the conditional dependencies between the location and shape parameters:
-
-   $$
-   \begin{aligned}
-   Q_{\psi\phi} &= \text{diag}\left(\tau^{\psi\phi}_1, \dots, \tau^{\psi\phi}_n\right) \\
-   &= \text{diag}\left(-\frac{\partial^2 \ell(Y_1|\psi_1,\tau_1,\phi_1)}{\partial \psi_1\partial \phi_1}, \ldots, -\frac{\partial^2 \ell(Y_n|\psi_n,\tau_n,\phi_n)}{\partial \psi_n\partial \phi_n}\right)
-   \end{aligned}
-   $$
-
-This structure reflects the independence assumption between stations in the Max step, while capturing the parameter dependencies within each station. The outputs, $\hat \eta$ and $Q_{\eta y}$, serve as inputs into the Smooth step.
-
-# Smooth Step
-
-The Smooth step involves Bayesian inference on a latent Gaussian field, using the maximum likelihood estimates from the Max step as data. We implement this step using Stan, which provides efficient Hamiltonian Monte Carlo sampling.
-
-## Model Structure
-
-Let $\eta$ be the latent field of parameters, and $\hat{\eta}$ be the maximum likelihood estimates from the Max step. The model follows a BYM2 (Besag-York-Mollié) structure, which decomposes the spatial effect into structured and unstructured components:
-
-For each parameter $p \in \{\psi, \tau, \phi\}$:
-
-$$
-\eta_p = \mu_p + \sigma_p\left(\eta^{\text{spatial}}_p\sqrt{\frac{\rho_p}{c}} + \eta^{\text{random}}_p\sqrt{1-\rho_p}\right)
-$$
+$$\ell(\theta|Y) = \sum_{j=1}^p \sum_{i=1}^n \ell_{\text{GEV}}(y_{ij}|\mu_j,\sigma_j,\xi_j) + \ell_{\text{copula}}(Z|Q)$$
 
 where:
 
-* $\mu_p$ is the overall mean for parameter $p$
-* $\sigma_p$ is the marginal standard deviation
-* $\rho_p$ is the mixing parameter determining the balance between spatial and random effects
-* $c$ is a scaling factor that ensures the marginal variance of the spatial component is approximately 1
-* $\eta^{\text{spatial}}_p$ follows an intrinsic conditional autoregressive (ICAR) prior
-* $\eta^{\text{random}}_p$ follows a standard normal distribution
+1. The GEV log-likelihood for a single observation is:
+   $$\ell_{\text{GEV}}(y|\mu,\sigma,\xi) = -\log\sigma - (1+\frac{1}{\xi})\log(1+\xi\frac{y-\mu}{\sigma}) - (1+\xi\frac{y-\mu}{\sigma})^{-1/\xi}$$
 
-### Data Level
+2. The Gaussian copula log-likelihood is:
+   $$\ell_{\text{copula}}(Z|Q) = \frac{1}{2}\log|Q| - \frac{1}{2}Z^TQZ + \frac{1}{2}Z^TZ$$
+   where the last term accounts for the standard normal margins.
 
-The data level models the relationship between the observed maximum likelihood estimates $\hat{\eta}$ and the true latent field $\eta$ using a multivariate normal distribution with precision matrix $Q_{\eta y}$ from the Max step:
+## Implementation Details
 
-$$\hat{\eta} | \eta \sim N(\eta, Q_{\eta y}^{-1})$$
+The optimization is performed using automatic differentiation and the L-BFGS algorithm. Key implementation features include:
 
-The precision matrix $Q_{\eta y}$ is passed to Stan in a sparse representation and a custom likelihood function for multivariate Gaussian distributions with know Cholesky decomposed precision matrix is used.
+1. **Parameter transformations**:
+   $$(\psi,\tau,\phi) = (\log\mu, \log\sigma-\log\mu, \text{logit}(\xi))$$
+
+2. **Efficient computation** of the quadratic form $Z^TQZ$ and log-determinant $\log|Q|$ by exploiting the Kronecker structure of the precision matrix
+
+3. **Probability integral transform** using accurate approximations to the GEV CDF and normal quantile function
+
+4. **Automatic differentiation** (using autodiff's reverse mode) for accurate gradient and Hessian computation
+
+# Smooth Step 
+
+The Smooth step performs Bayesian inference on the latent parameter fields using the maximum likelihood estimates from the Max step as noisy observations. We implement this using Stan's efficient Hamiltonian Monte Carlo sampler with a BYM2 (Besag-York-Mollié) spatial model.
+
+## Model Structure
+
+Let $\hat{\eta}$ be the vector of maximum likelihood estimates from the Max step, arranged as:
+
+$$\hat{\eta} = (\hat{\psi}_1,\ldots,\hat{\psi}_p, \hat{\tau}_1,\ldots,\hat{\tau}_p, \hat{\phi}_1,\ldots,\hat{\phi}_p)^T$$
+
+where $p$ is the number of spatial locations and $(\hat{\psi}, \hat{\tau}, \hat{\phi})$ represent the transformed GEV parameters.
+
+### Spatial Random Effects
+
+For each parameter type $k \in \{\psi, \tau, \phi\}$, we decompose the spatial variation into structured and unstructured components following the BYM2 parameterization:
+
+$$\eta_k = \mu_k\mathbf{1} + \sigma_k\left(\sqrt{\frac{\rho_k}{c}}\eta^{\text{spatial}}_k + \sqrt{1-\rho_k}\eta^{\text{random}}_k\right)$$
+
+where:
+
+- $\mu_k$ is the overall mean 
+- $\sigma_k > 0$ is the marginal standard deviation
+- $\rho_k \in [0,1]$ is the mixing parameter controlling the balance between spatial and unstructured variation
+- $c$ is a scaling factor that ensures the marginal variance of the spatial component is approximately 1
+- $\eta^{\text{spatial}}_k$ follows an intrinsic conditional autoregressive (ICAR) prior
+- $\eta^{\text{random}}_k \sim \mathcal{N}(0, I)$ represents unstructured random effects
+
+### ICAR Prior Specification
+
+The ICAR prior for the spatial component $\eta^{\text{spatial}}_k$ is specified through its full conditional distributions:
+
+$$\eta^{\text{spatial}}_{k,i} | \eta^{\text{spatial}}_{k,-i} \sim \mathcal{N}\left(\frac{1}{n_i}\sum_{j \sim i} \eta^{\text{spatial}}_{k,j}, \frac{1}{n_i}\right)$$
+
+where $j \sim i$ indicates that locations $i$ and $j$ are neighbors, and $n_i$ is the number of neighbors for location $i$. This is implemented efficiently in Stan through the sum of squared differences form:
+
+$$p(\eta^{\text{spatial}}_k) \propto \exp\left(-\frac{1}{2}\sum_{i \sim j} (\eta^{\text{spatial}}_{k,i} - \eta^{\text{spatial}}_{k,j})^2\right)$$
+
+with an additional soft sum-to-zero constraint implemented via $\sum_i \eta^{\text{spatial}}_{k,i} \sim \mathcal{N}(0, 0.001p)$.
+
+### Observation Model
+
+The observation model links the MLEs to the latent field through a multivariate normal distribution:
+
+$$\hat{\eta} | \eta \sim \mathcal{N}(\eta, Q^{-1}_{\eta y})$$
+
+where $Q_{\eta y}$ is the precision matrix obtained from the negative Hessian in the Max step. To handle this efficiently in Stan, we:
+
+1. Pre-compute the Cholesky factor $L$ of $Q_{\eta y} = LL^T$
+2. Store $L$ in a sparse format using arrays of indices and values
+3. Implement a custom log probability function that computes:
+   $$\log p(\hat{\eta}|\eta) = \frac{1}{2}\log|Q_{\eta y}| - \frac{1}{2}(\hat{\eta} - \eta)^T Q_{\eta y}(\hat{\eta} - \eta)$$
+   using the sparse Cholesky representation
 
 ### Prior Distributions
 
-The model uses the following prior distributions: what
+We specify weakly informative priors:
 
-* $\sigma_p \sim \mathrm{Exponential}(1)$ for the marginal standard deviations
-* $\rho_p \sim \mathrm{Beta}(1,1)$ for the mixing parameters
-* $\mu_p \sim 1$ for the overall means
+$$
+\begin{aligned}
+\sigma_k &\sim \text{Exponential}(1) \\
+\rho_k &\sim \text{Beta}(1,1) \\
+\mu_k &\sim \text{flat}
+\end{aligned}
+$$
+
+for each parameter type $k$. The exponential prior on $\sigma_k$ provides weak regularization while ensuring positivity, while the uniform Beta prior on $\rho_k$ allows the data to determine the balance between spatial and unstructured variation.
+
+## Posterior Inference
+
+The model is fit using Stan's implementation of the No-U-Turn Sampler (NUTS), providing:
+
+1. Posterior samples of the latent field $\eta$
+2. Uncertainty quantification through the posterior distributions of $\mu_k$, $\sigma_k$, and $\rho_k$
+3. Decomposition of spatial variation through the posterior distributions of $\eta^{\text{spatial}}_k$ and $\eta^{\text{random}}_k$
