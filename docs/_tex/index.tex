@@ -193,23 +193,156 @@ Key features of the package include:
 
 \subsection{Algorithm Description}\label{algorithm-description}
 
-The Max-and-Smooth algorithm, as applied to spatial GEV models, consists
-of two main steps:
+The Max-and-Smooth algorithm provides a computationally efficient
+approach to Bayesian inference for spatial extreme value models by
+decomposing the inference into two steps. This approach is particularly
+well-suited for spatial GEV models where we have both temporal
+replicates and spatial dependence.
+
+\subsubsection{Overview}\label{overview}
+
+Let \(Y = \{y_{it}\}\) be observations at locations \(i=1,\ldots,p\) and
+times \(t=1,\ldots,n\). We model these through GEV marginal
+distributions with spatially varying parameters and a Gaussian copula
+dependence structure:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{Marginal Distribution}: At each location \(i\):
+  \[Y_{it} \sim \mathrm{GEV}(\mu_i, \sigma_i, \xi_i)\]
+\item
+  \textbf{Dependence Structure}: Transform to Gaussian margins via:
+  \[Z_{it} = \Phi^{-1}(F_{\mathrm{GEV}}(Y_{it}|\mu_i,\sigma_i,\xi_i))\]
+  where the spatial dependence is captured through a Matérn-like
+  precision structure:
+  \[Z_t \sim \mathcal{N}(0, Q^{-1}), \quad Q = (Q_{\rho_1} \otimes I_{n_2} + I_{n_1} \otimes Q_{\rho_2})^{\nu+1}\]
+\end{enumerate}
+
+\subsubsection{Inference Steps}\label{inference-steps}
+
+The algorithm proceeds in two main steps:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
 \tightlist
 \item
-  \textbf{Max Step}: Maximum likelihood estimation of GEV parameters at
-  each spatial location using C++
+  \textbf{Max Step}: Joint maximum likelihood estimation
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Input: Raw observations \(Y\)
+  \item
+    Process:
+
+    \begin{enumerate}
+    \def\labelenumii{\alph{enumii}.}
+    \tightlist
+    \item
+      Transform parameters:
+      \((\psi,\tau,\phi) = (\log\mu, \log\sigma-\log\mu, \text{logit}(\xi))\)
+    \item
+      Maximize joint log-likelihood combining GEV margins and Gaussian
+      copula
+    \item
+      Compute Hessian at MLE for uncertainty quantification
+    \end{enumerate}
+  \item
+    Output:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      MLEs \(\hat{\eta} = (\hat{\psi}, \hat{\tau}, \hat{\phi})\)
+    \item
+      Precision matrix \(Q_{\eta y}\) (negative Hessian)
+    \end{itemize}
+  \end{itemize}
 \item
-  \textbf{Smooth Step}: Spatial smoothing of the maximum likelihood
-  estimates using a BYM2 model implemented in Stan
+  \textbf{Smooth Step}: Spatial smoothing via BYM2 model
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Input: MLEs \(\hat{\eta}\) and precision \(Q_{\eta y}\) from Max
+    step
+  \item
+    Process: For each parameter type \(k \in \{\psi, \tau, \phi\}\):
+
+    \begin{enumerate}
+    \def\labelenumii{\alph{enumii}.}
+    \tightlist
+    \item
+      Decompose into spatial and random components:
+      \[\eta_k = \mu_k\mathbf{1} + \sigma_k(\sqrt{\rho_k/c}\eta^{\mathrm{spatial}}_k + \sqrt{1-\rho_k}\eta^{\mathrm{random}}_k)\]
+    \item
+      Apply ICAR prior to spatial component
+    \item
+      Sample posterior using MCMC
+    \end{enumerate}
+  \item
+    Output: Posterior samples of smoothed parameters
+  \end{itemize}
 \end{enumerate}
 
-The algorithm treats the ML estimates as sufficient statistics for a
-latent Gaussian field, providing a fast approximation to full Bayesian
-inference for spatial extreme value models.
+\subsubsection{Key Features}\label{key-features}
+
+The algorithm offers several computational advantages:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Parallel Processing}: The Max step can be parallelized across
+  locations
+\item
+  \textbf{Dimensionality Reduction}: The Smooth step works with summary
+  statistics (MLEs) rather than raw data
+\item
+  \textbf{Efficient Sampling}: Uses Stan's NUTS sampler with sparse
+  matrix operations
+\item
+  \textbf{Uncertainty Propagation}: Incorporates parameter uncertainty
+  through \(Q_{\eta y}\)
+\end{enumerate}
+
+\subsubsection{Implementation}\label{implementation}
+
+The method is implemented using:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  C++ with automatic differentiation for the Max step:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Efficient computation of GEV density and transformations
+  \item
+    Sparse matrix operations for Gaussian copula likelihood
+  \item
+    L-BFGS optimization with analytical gradients
+  \end{itemize}
+\item
+  Stan for the Smooth step:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    BYM2 spatial model with PC priors
+  \item
+    Custom functions for sparse precision matrices
+  \item
+    Efficient HMC sampling
+  \end{itemize}
+\end{enumerate}
+
+This two-step approach provides a computationally tractable alternative
+to full MCMC for spatial extreme value models while maintaining proper
+uncertainty quantification through the entire inference pipeline.
 
 \subsection{Code Structure}\label{code-structure}
 
@@ -255,8 +388,8 @@ The model combines GEV marginal distributions with a Gaussian copula:
   \[Y_{ij} \sim \text{GEV}(\mu_j, \sigma_j, \xi_j)\]
 \item
   \textbf{Spatial dependence}: The dependence structure is captured by
-  transforming the observations to standard normal using the probability
-  integral transform:
+  transforming the observations to standard normal using the
+  prowbability integral transform:
   \[Z_{ij} = \Phi^{-1}(F_{\text{GEV}}(Y_{ij}|\mu_j,\sigma_j,\xi_j))\]
   where \(F_{\text{GEV}}\) is the GEV CDF and \(\Phi^{-1}\) is the
   standard normal quantile function.
@@ -345,7 +478,7 @@ For each parameter type \(k \in \{\psi, \tau, \phi\}\), we decompose the
 spatial variation into structured and unstructured components following
 the BYM2 parameterization:
 
-\[\eta_k = \mu_k\mathbf{1} + \sigma_k\left(\sqrt{\frac{\rho_k}{c}}\eta^{\text{spatial}}_k + \sqrt{1-\rho_k}\eta^{\text{random}}_k\right)\]
+\[\eta_k = \mu_k\mathbf{1} + \sigma_k\left(\sqrt{\frac{\rho_k}{c}}\eta^{\mathrm{spatial}}_k + \sqrt{1-\rho_k}\eta^{\mathrm{random}}_k\right)\]
 
 where:
 
@@ -362,29 +495,29 @@ where:
   \(c\) is a scaling factor that ensures the marginal variance of the
   spatial component is approximately 1
 \item
-  \(\eta^{\text{spatial}}_k\) follows an intrinsic conditional
+  \(\eta^{\mathrm{spatial}}_k\) follows an intrinsic conditional
   autoregressive (ICAR) prior
 \item
-  \(\eta^{\text{random}}_k \sim \mathcal{N}(0, I)\) represents
+  \(\eta^{\mathrm{random}}_k \sim \mathcal{N}(0, I)\) represents
   unstructured random effects
 \end{itemize}
 
 \subsubsection{ICAR Prior Specification}\label{icar-prior-specification}
 
-The ICAR prior for the spatial component \(\eta^{\text{spatial}}_k\) is
-specified through its full conditional distributions:
+The ICAR prior for the spatial component \(\eta^{\mathrm{spatial}}_k\)
+is specified through its full conditional distributions:
 
-\[\eta^{\text{spatial}}_{k,i} | \eta^{\text{spatial}}_{k,-i} \sim \mathcal{N}\left(\frac{1}{n_i}\sum_{j \sim i} \eta^{\text{spatial}}_{k,j}, \frac{1}{n_i}\right)\]
+\[\eta^{\mathrm{spatial}}_{k,i} | \eta^{\mathrm{spatial}}_{k,-i} \sim \mathcal{N}\left(\frac{1}{n_i}\sum_{j \sim i} \eta^{\mathrm{spatial}}_{k,j}, \frac{1}{n_i}\right)\]
 
 where \(j \sim i\) indicates that locations \(i\) and \(j\) are
 neighbors, and \(n_i\) is the number of neighbors for location \(i\).
 This is implemented efficiently in Stan through the sum of squared
 differences form:
 
-\[p(\eta^{\text{spatial}}_k) \propto \exp\left(-\frac{1}{2}\sum_{i \sim j} (\eta^{\text{spatial}}_{k,i} - \eta^{\text{spatial}}_{k,j})^2\right)\]
+\[p(\eta^{\mathrm{spatial}}_k) \propto \exp\left(-\frac{1}{2}\sum_{i \sim j} (\eta^{\mathrm{spatial}}_{k,i} - \eta^{\mathrm{spatial}}_{k,j})^2\right)\]
 
 with an additional soft sum-to-zero constraint implemented via
-\(\sum_i \eta^{\text{spatial}}_{k,i} \sim \mathcal{N}(0, 0.001p)\).
+\(\sum_i \eta^{\mathrm{spatial}}_{k,i} \sim \mathcal{N}(0, 0.001p)\).
 
 \subsubsection{Observation Model}\label{observation-model}
 
@@ -415,9 +548,9 @@ We specify weakly informative priors:
 
 \[
 \begin{aligned}
-\sigma_k &\sim \text{Exponential}(1) \\
-\rho_k &\sim \text{Beta}(1,1) \\
-\mu_k &\sim \text{flat}
+\sigma_k &\sim \mathrm{Exponential}(1) \\
+\rho_k &\sim \mathrm{Beta}(1,1) \\
+\mu_k &\sim \mathrm{flat}
 \end{aligned}
 \]
 
@@ -441,7 +574,7 @@ The model is fit using Stan's implementation of the No-U-Turn Sampler
   \(\mu_k\), \(\sigma_k\), and \(\rho_k\)
 \item
   Decomposition of spatial variation through the posterior distributions
-  of \(\eta^{\text{spatial}}_k\) and \(\eta^{\text{random}}_k\)
+  of \(\eta^{\mathrm{spatial}}_k\) and \(\eta^{\mathrm{random}}_k\)
 \end{enumerate}
 
 

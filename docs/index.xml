@@ -56,21 +56,168 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
       </sec>
       <sec id="algorithm-description">
         <title>Algorithm Description</title>
-        <p>The Max-and-Smooth algorithm, as applied to spatial GEV models,
-    consists of two main steps:</p>
-        <list list-type="order">
-          <list-item>
-            <p><bold>Max Step</bold>: Maximum likelihood estimation of GEV
-        parameters at each spatial location using C++</p>
-          </list-item>
-          <list-item>
-            <p><bold>Smooth Step</bold>: Spatial smoothing of the maximum
-        likelihood estimates using a BYM2 model implemented in Stan</p>
-          </list-item>
-        </list>
-        <p>The algorithm treats the ML estimates as sufficient statistics
-    for a latent Gaussian field, providing a fast approximation to full
-    Bayesian inference for spatial extreme value models.</p>
+        <p>The Max-and-Smooth algorithm provides a computationally efficient
+    approach to Bayesian inference for spatial extreme value models by
+    decomposing the inference into two steps. This approach is
+    particularly well-suited for spatial GEV models where we have both
+    temporal replicates and spatial dependence.</p>
+        <sec id="overview">
+          <title>Overview</title>
+          <p>Let <inline-formula><alternatives><tex-math><![CDATA[Y = \{y_{it}\}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>Y</mml:mi><mml:mo>=</mml:mo><mml:mo stretchy="false" form="prefix">{</mml:mo><mml:msub><mml:mi>y</mml:mi><mml:mrow><mml:mi>i</mml:mi><mml:mi>t</mml:mi></mml:mrow></mml:msub><mml:mo stretchy="false" form="postfix">}</mml:mo></mml:mrow></mml:math></alternatives></inline-formula>
+      be observations at locations <inline-formula><alternatives><tex-math><![CDATA[i=1,\ldots,p]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>i</mml:mi><mml:mo>=</mml:mo><mml:mn>1</mml:mn><mml:mo>,</mml:mo><mml:mi>…</mml:mi><mml:mo>,</mml:mo><mml:mi>p</mml:mi></mml:mrow></mml:math></alternatives></inline-formula>
+      and times <inline-formula><alternatives><tex-math><![CDATA[t=1,\ldots,n]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>t</mml:mi><mml:mo>=</mml:mo><mml:mn>1</mml:mn><mml:mo>,</mml:mo><mml:mi>…</mml:mi><mml:mo>,</mml:mo><mml:mi>n</mml:mi></mml:mrow></mml:math></alternatives></inline-formula>.
+      We model these through GEV marginal distributions with spatially
+      varying parameters and a Gaussian copula dependence structure:</p>
+          <list list-type="order">
+            <list-item>
+              <p><bold>Marginal Distribution</bold>: At each location
+          <inline-formula><alternatives><tex-math><![CDATA[i]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mi>i</mml:mi></mml:math></alternatives></inline-formula>:
+          <disp-formula><alternatives><tex-math><![CDATA[Y_{it} \sim \mathrm{GEV}(\mu_i, \sigma_i, \xi_i)]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block"><mml:mrow><mml:msub><mml:mi>Y</mml:mi><mml:mrow><mml:mi>i</mml:mi><mml:mi>t</mml:mi></mml:mrow></mml:msub><mml:mo>∼</mml:mo><mml:mrow><mml:mi mathvariant="normal">G</mml:mi><mml:mi mathvariant="normal">E</mml:mi><mml:mi mathvariant="normal">V</mml:mi></mml:mrow><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:msub><mml:mi>μ</mml:mi><mml:mi>i</mml:mi></mml:msub><mml:mo>,</mml:mo><mml:msub><mml:mi>σ</mml:mi><mml:mi>i</mml:mi></mml:msub><mml:mo>,</mml:mo><mml:msub><mml:mi>ξ</mml:mi><mml:mi>i</mml:mi></mml:msub><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></disp-formula></p>
+            </list-item>
+            <list-item>
+              <p><bold>Dependence Structure</bold>: Transform to Gaussian
+          margins via: <disp-formula><alternatives><tex-math><![CDATA[Z_{it} = \Phi^{-1}(F_{\mathrm{GEV}}(Y_{it}|\mu_i,\sigma_i,\xi_i))]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block"><mml:mrow><mml:msub><mml:mi>Z</mml:mi><mml:mrow><mml:mi>i</mml:mi><mml:mi>t</mml:mi></mml:mrow></mml:msub><mml:mo>=</mml:mo><mml:msup><mml:mi>Φ</mml:mi><mml:mrow><mml:mi>−</mml:mi><mml:mn>1</mml:mn></mml:mrow></mml:msup><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:msub><mml:mi>F</mml:mi><mml:mrow><mml:mi mathvariant="normal">G</mml:mi><mml:mi mathvariant="normal">E</mml:mi><mml:mi mathvariant="normal">V</mml:mi></mml:mrow></mml:msub><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:msub><mml:mi>Y</mml:mi><mml:mrow><mml:mi>i</mml:mi><mml:mi>t</mml:mi></mml:mrow></mml:msub><mml:mo stretchy="false" form="prefix">|</mml:mo><mml:msub><mml:mi>μ</mml:mi><mml:mi>i</mml:mi></mml:msub><mml:mo>,</mml:mo><mml:msub><mml:mi>σ</mml:mi><mml:mi>i</mml:mi></mml:msub><mml:mo>,</mml:mo><mml:msub><mml:mi>ξ</mml:mi><mml:mi>i</mml:mi></mml:msub><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></disp-formula>
+          where the spatial dependence is captured through a Matérn-like
+          precision structure: <disp-formula><alternatives><tex-math><![CDATA[Z_t \sim \mathcal{N}(0, Q^{-1}), \quad Q = (Q_{\rho_1} \otimes I_{n_2} + I_{n_1} \otimes Q_{\rho_2})^{\nu+1}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block"><mml:mrow><mml:msub><mml:mi>Z</mml:mi><mml:mi>t</mml:mi></mml:msub><mml:mo>∼</mml:mo><mml:mi>𝒩</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mn>0</mml:mn><mml:mo>,</mml:mo><mml:msup><mml:mi>Q</mml:mi><mml:mrow><mml:mi>−</mml:mi><mml:mn>1</mml:mn></mml:mrow></mml:msup><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mo>,</mml:mo><mml:mspace width="1.0em"/><mml:mi>Q</mml:mi><mml:mo>=</mml:mo><mml:msup><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:msub><mml:mi>Q</mml:mi><mml:msub><mml:mi>ρ</mml:mi><mml:mn>1</mml:mn></mml:msub></mml:msub><mml:mo>⊗</mml:mo><mml:msub><mml:mi>I</mml:mi><mml:msub><mml:mi>n</mml:mi><mml:mn>2</mml:mn></mml:msub></mml:msub><mml:mo>+</mml:mo><mml:msub><mml:mi>I</mml:mi><mml:msub><mml:mi>n</mml:mi><mml:mn>1</mml:mn></mml:msub></mml:msub><mml:mo>⊗</mml:mo><mml:msub><mml:mi>Q</mml:mi><mml:msub><mml:mi>ρ</mml:mi><mml:mn>2</mml:mn></mml:msub></mml:msub><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mrow><mml:mi>ν</mml:mi><mml:mo>+</mml:mo><mml:mn>1</mml:mn></mml:mrow></mml:msup></mml:mrow></mml:math></alternatives></disp-formula></p>
+            </list-item>
+          </list>
+        </sec>
+        <sec id="inference-steps">
+          <title>Inference Steps</title>
+          <p>The algorithm proceeds in two main steps:</p>
+          <list list-type="order">
+            <list-item>
+              <p><bold>Max Step</bold>: Joint maximum likelihood
+          estimation</p>
+              <list list-type="bullet">
+                <list-item>
+                  <p>Input: Raw observations <inline-formula><alternatives><tex-math><![CDATA[Y]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mi>Y</mml:mi></mml:math></alternatives></inline-formula></p>
+                </list-item>
+                <list-item>
+                  <p>Process:</p>
+                  <list list-type="alpha-lower">
+                    <list-item>
+                      <p>Transform parameters:
+                  <inline-formula><alternatives><tex-math><![CDATA[(\psi,\tau,\phi) = (\log\mu, \log\sigma-\log\mu, \text{logit}(\xi))]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mi>ψ</mml:mi><mml:mo>,</mml:mo><mml:mi>τ</mml:mi><mml:mo>,</mml:mo><mml:mi>ϕ</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mo>=</mml:mo><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mo>log</mml:mo><mml:mi>μ</mml:mi><mml:mo>,</mml:mo><mml:mo>log</mml:mo><mml:mi>σ</mml:mi><mml:mo>−</mml:mo><mml:mo>log</mml:mo><mml:mi>μ</mml:mi><mml:mo>,</mml:mo><mml:mtext mathvariant="normal">logit</mml:mtext><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mi>ξ</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula></p>
+                    </list-item>
+                    <list-item>
+                      <p>Maximize joint log-likelihood combining GEV margins
+                  and Gaussian copula</p>
+                    </list-item>
+                    <list-item>
+                      <p>Compute Hessian at MLE for uncertainty
+                  quantification</p>
+                    </list-item>
+                  </list>
+                </list-item>
+                <list-item>
+                  <p>Output:</p>
+                  <list list-type="bullet">
+                    <list-item>
+                      <p>MLEs <inline-formula><alternatives><tex-math><![CDATA[\hat{\eta} = (\hat{\psi}, \hat{\tau}, \hat{\phi})]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mover><mml:mi>η</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mo>=</mml:mo><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mover><mml:mi>ψ</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mo>,</mml:mo><mml:mover><mml:mi>τ</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mo>,</mml:mo><mml:mover><mml:mi>ϕ</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula></p>
+                    </list-item>
+                    <list-item>
+                      <p>Precision matrix <inline-formula><alternatives><tex-math><![CDATA[Q_{\eta y}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>Q</mml:mi><mml:mrow><mml:mi>η</mml:mi><mml:mi>y</mml:mi></mml:mrow></mml:msub></mml:math></alternatives></inline-formula>
+                  (negative Hessian)</p>
+                    </list-item>
+                  </list>
+                </list-item>
+              </list>
+            </list-item>
+            <list-item>
+              <p><bold>Smooth Step</bold>: Spatial smoothing via BYM2
+          model</p>
+              <list list-type="bullet">
+                <list-item>
+                  <p>Input: MLEs <inline-formula><alternatives><tex-math><![CDATA[\hat{\eta}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mover><mml:mi>η</mml:mi><mml:mo accent="true">̂</mml:mo></mml:mover></mml:math></alternatives></inline-formula>
+              and precision <inline-formula><alternatives><tex-math><![CDATA[Q_{\eta y}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>Q</mml:mi><mml:mrow><mml:mi>η</mml:mi><mml:mi>y</mml:mi></mml:mrow></mml:msub></mml:math></alternatives></inline-formula>
+              from Max step</p>
+                </list-item>
+                <list-item>
+                  <p>Process: For each parameter type
+              <inline-formula><alternatives><tex-math><![CDATA[k \in \{\psi, \tau, \phi\}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:mi>k</mml:mi><mml:mo>∈</mml:mo><mml:mo stretchy="false" form="prefix">{</mml:mo><mml:mi>ψ</mml:mi><mml:mo>,</mml:mo><mml:mi>τ</mml:mi><mml:mo>,</mml:mo><mml:mi>ϕ</mml:mi><mml:mo stretchy="false" form="postfix">}</mml:mo></mml:mrow></mml:math></alternatives></inline-formula>:</p>
+                  <list list-type="alpha-lower">
+                    <list-item>
+                      <p>Decompose into spatial and random components:
+                  <disp-formula><alternatives><tex-math><![CDATA[\eta_k = \mu_k\mathbf{1} + \sigma_k(\sqrt{\rho_k/c}\eta^{\mathrm{spatial}}_k + \sqrt{1-\rho_k}\eta^{\mathrm{random}}_k)]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block"><mml:mrow><mml:msub><mml:mi>η</mml:mi><mml:mi>k</mml:mi></mml:msub><mml:mo>=</mml:mo><mml:msub><mml:mi>μ</mml:mi><mml:mi>k</mml:mi></mml:msub><mml:mn>𝟏</mml:mn><mml:mo>+</mml:mo><mml:msub><mml:mi>σ</mml:mi><mml:mi>k</mml:mi></mml:msub><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:msqrt><mml:mrow><mml:msub><mml:mi>ρ</mml:mi><mml:mi>k</mml:mi></mml:msub><mml:mi>/</mml:mi><mml:mi>c</mml:mi></mml:mrow></mml:msqrt><mml:msubsup><mml:mi>η</mml:mi><mml:mi>k</mml:mi><mml:mrow><mml:mi mathvariant="normal">s</mml:mi><mml:mi mathvariant="normal">p</mml:mi><mml:mi mathvariant="normal">a</mml:mi><mml:mi mathvariant="normal">t</mml:mi><mml:mi mathvariant="normal">i</mml:mi><mml:mi mathvariant="normal">a</mml:mi><mml:mi mathvariant="normal">l</mml:mi></mml:mrow></mml:msubsup><mml:mo>+</mml:mo><mml:msqrt><mml:mrow><mml:mn>1</mml:mn><mml:mo>−</mml:mo><mml:msub><mml:mi>ρ</mml:mi><mml:mi>k</mml:mi></mml:msub></mml:mrow></mml:msqrt><mml:msubsup><mml:mi>η</mml:mi><mml:mi>k</mml:mi><mml:mrow><mml:mi mathvariant="normal">r</mml:mi><mml:mi mathvariant="normal">a</mml:mi><mml:mi mathvariant="normal">n</mml:mi><mml:mi mathvariant="normal">d</mml:mi><mml:mi mathvariant="normal">o</mml:mi><mml:mi mathvariant="normal">m</mml:mi></mml:mrow></mml:msubsup><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></disp-formula></p>
+                    </list-item>
+                    <list-item>
+                      <p>Apply ICAR prior to spatial component</p>
+                    </list-item>
+                    <list-item>
+                      <p>Sample posterior using MCMC</p>
+                    </list-item>
+                  </list>
+                </list-item>
+                <list-item>
+                  <p>Output: Posterior samples of smoothed parameters</p>
+                </list-item>
+              </list>
+            </list-item>
+          </list>
+        </sec>
+        <sec id="key-features">
+          <title>Key Features</title>
+          <p>The algorithm offers several computational advantages:</p>
+          <list list-type="order">
+            <list-item>
+              <p><bold>Parallel Processing</bold>: The Max step can be
+          parallelized across locations</p>
+            </list-item>
+            <list-item>
+              <p><bold>Dimensionality Reduction</bold>: The Smooth step
+          works with summary statistics (MLEs) rather than raw data</p>
+            </list-item>
+            <list-item>
+              <p><bold>Efficient Sampling</bold>: Uses Stan’s NUTS sampler
+          with sparse matrix operations</p>
+            </list-item>
+            <list-item>
+              <p><bold>Uncertainty Propagation</bold>: Incorporates
+          parameter uncertainty through <inline-formula><alternatives><tex-math><![CDATA[Q_{\eta y}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>Q</mml:mi><mml:mrow><mml:mi>η</mml:mi><mml:mi>y</mml:mi></mml:mrow></mml:msub></mml:math></alternatives></inline-formula></p>
+            </list-item>
+          </list>
+        </sec>
+        <sec id="implementation">
+          <title>Implementation</title>
+          <p>The method is implemented using:</p>
+          <list list-type="order">
+            <list-item>
+              <p>C++ with automatic differentiation for the Max step:</p>
+              <list list-type="bullet">
+                <list-item>
+                  <p>Efficient computation of GEV density and
+              transformations</p>
+                </list-item>
+                <list-item>
+                  <p>Sparse matrix operations for Gaussian copula
+              likelihood</p>
+                </list-item>
+                <list-item>
+                  <p>L-BFGS optimization with analytical gradients</p>
+                </list-item>
+              </list>
+            </list-item>
+            <list-item>
+              <p>Stan for the Smooth step:</p>
+              <list list-type="bullet">
+                <list-item>
+                  <p>BYM2 spatial model with PC priors</p>
+                </list-item>
+                <list-item>
+                  <p>Custom functions for sparse precision matrices</p>
+                </list-item>
+                <list-item>
+                  <p>Efficient HMC sampling</p>
+                </list-item>
+              </list>
+            </list-item>
+          </list>
+          <p>This two-step approach provides a computationally tractable
+      alternative to full MCMC for spatial extreme value models while
+      maintaining proper uncertainty quantification through the entire
+      inference pipeline.</p>
+        </sec>
       </sec>
       <sec id="code-structure">
         <title>Code Structure</title>
@@ -121,7 +268,7 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
           <list-item>
             <p><bold>Spatial dependence</bold>: The dependence structure is
         captured by transforming the observations to standard normal
-        using the probability integral transform:
+        using the prowbability integral transform:
         <disp-formula><alternatives><tex-math><![CDATA[Z_{ij} = \Phi^{-1}(F_{\text{GEV}}(Y_{ij}|\mu_j,\sigma_j,\xi_j))]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block"><mml:mrow><mml:msub><mml:mi>Z</mml:mi><mml:mrow><mml:mi>i</mml:mi><mml:mi>j</mml:mi></mml:mrow></mml:msub><mml:mo>=</mml:mo><mml:msup><mml:mi>Φ</mml:mi><mml:mrow><mml:mi>−</mml:mi><mml:mn>1</mml:mn></mml:mrow></mml:msup><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:msub><mml:mi>F</mml:mi><mml:mtext mathvariant="normal">GEV</mml:mtext></mml:msub><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:msub><mml:mi>Y</mml:mi><mml:mrow><mml:mi>i</mml:mi><mml:mi>j</mml:mi></mml:mrow></mml:msub><mml:mo stretchy="false" form="prefix">|</mml:mo><mml:msub><mml:mi>μ</mml:mi><mml:mi>j</mml:mi></mml:msub><mml:mo>,</mml:mo><mml:msub><mml:mi>σ</mml:mi><mml:mi>j</mml:mi></mml:msub><mml:mo>,</mml:mo><mml:msub><mml:mi>ξ</mml:mi><mml:mi>j</mml:mi></mml:msub><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></disp-formula>
         where <inline-formula><alternatives><tex-math><![CDATA[F_{\text{GEV}}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msub><mml:mi>F</mml:mi><mml:mtext mathvariant="normal">GEV</mml:mtext></mml:msub></mml:math></alternatives></inline-formula>
         is the GEV CDF and <inline-formula><alternatives><tex-math><![CDATA[\Phi^{-1}]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msup><mml:mi>Φ</mml:mi><mml:mrow><mml:mi>−</mml:mi><mml:mn>1</mml:mn></mml:mrow></mml:msup></mml:math></alternatives></inline-formula>
@@ -378,7 +525,7 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
           <p>
             <disp-formula>
               <alternatives>
-                <tex-math><![CDATA[\eta_k = \mu_k\mathbf{1} + \sigma_k\left(\sqrt{\frac{\rho_k}{c}}\eta^{\text{spatial}}_k + \sqrt{1-\rho_k}\eta^{\text{random}}_k\right)]]></tex-math>
+                <tex-math><![CDATA[\eta_k = \mu_k\mathbf{1} + \sigma_k\left(\sqrt{\frac{\rho_k}{c}}\eta^{\mathrm{spatial}}_k + \sqrt{1-\rho_k}\eta^{\mathrm{random}}_k\right)]]></tex-math>
                 <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
                   <mml:mrow>
                     <mml:msub>
@@ -410,7 +557,15 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
                       <mml:msubsup>
                         <mml:mi>η</mml:mi>
                         <mml:mi>k</mml:mi>
-                        <mml:mtext mathvariant="normal">spatial</mml:mtext>
+                        <mml:mrow>
+                          <mml:mi mathvariant="normal">s</mml:mi>
+                          <mml:mi mathvariant="normal">p</mml:mi>
+                          <mml:mi mathvariant="normal">a</mml:mi>
+                          <mml:mi mathvariant="normal">t</mml:mi>
+                          <mml:mi mathvariant="normal">i</mml:mi>
+                          <mml:mi mathvariant="normal">a</mml:mi>
+                          <mml:mi mathvariant="normal">l</mml:mi>
+                        </mml:mrow>
                       </mml:msubsup>
                       <mml:mo>+</mml:mo>
                       <mml:msqrt>
@@ -426,7 +581,14 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
                       <mml:msubsup>
                         <mml:mi>η</mml:mi>
                         <mml:mi>k</mml:mi>
-                        <mml:mtext mathvariant="normal">random</mml:mtext>
+                        <mml:mrow>
+                          <mml:mi mathvariant="normal">r</mml:mi>
+                          <mml:mi mathvariant="normal">a</mml:mi>
+                          <mml:mi mathvariant="normal">n</mml:mi>
+                          <mml:mi mathvariant="normal">d</mml:mi>
+                          <mml:mi mathvariant="normal">o</mml:mi>
+                          <mml:mi mathvariant="normal">m</mml:mi>
+                        </mml:mrow>
                       </mml:msubsup>
                       <mml:mo stretchy="true" form="postfix">)</mml:mo>
                     </mml:mrow>
@@ -456,12 +618,12 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
           spatial component is approximately 1</p>
             </list-item>
             <list-item>
-              <p><inline-formula><alternatives><tex-math><![CDATA[\eta^{\text{spatial}}_k]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>η</mml:mi><mml:mi>k</mml:mi><mml:mtext mathvariant="normal">spatial</mml:mtext></mml:msubsup></mml:math></alternatives></inline-formula>
+              <p><inline-formula><alternatives><tex-math><![CDATA[\eta^{\mathrm{spatial}}_k]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>η</mml:mi><mml:mi>k</mml:mi><mml:mrow><mml:mi mathvariant="normal">s</mml:mi><mml:mi mathvariant="normal">p</mml:mi><mml:mi mathvariant="normal">a</mml:mi><mml:mi mathvariant="normal">t</mml:mi><mml:mi mathvariant="normal">i</mml:mi><mml:mi mathvariant="normal">a</mml:mi><mml:mi mathvariant="normal">l</mml:mi></mml:mrow></mml:msubsup></mml:math></alternatives></inline-formula>
           follows an intrinsic conditional autoregressive (ICAR)
           prior</p>
             </list-item>
             <list-item>
-              <p><inline-formula><alternatives><tex-math><![CDATA[\eta^{\text{random}}_k \sim \mathcal{N}(0, I)]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msubsup><mml:mi>η</mml:mi><mml:mi>k</mml:mi><mml:mtext mathvariant="normal">random</mml:mtext></mml:msubsup><mml:mo>∼</mml:mo><mml:mi>𝒩</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mn>0</mml:mn><mml:mo>,</mml:mo><mml:mi>I</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula>
+              <p><inline-formula><alternatives><tex-math><![CDATA[\eta^{\mathrm{random}}_k \sim \mathcal{N}(0, I)]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msubsup><mml:mi>η</mml:mi><mml:mi>k</mml:mi><mml:mrow><mml:mi mathvariant="normal">r</mml:mi><mml:mi mathvariant="normal">a</mml:mi><mml:mi mathvariant="normal">n</mml:mi><mml:mi mathvariant="normal">d</mml:mi><mml:mi mathvariant="normal">o</mml:mi><mml:mi mathvariant="normal">m</mml:mi></mml:mrow></mml:msubsup><mml:mo>∼</mml:mo><mml:mi>𝒩</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mn>0</mml:mn><mml:mo>,</mml:mo><mml:mi>I</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula>
           represents unstructured random effects</p>
             </list-item>
           </list>
@@ -469,12 +631,12 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
         <sec id="icar-prior-specification">
           <title>ICAR Prior Specification</title>
           <p>The ICAR prior for the spatial component
-      <inline-formula><alternatives><tex-math><![CDATA[\eta^{\text{spatial}}_k]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>η</mml:mi><mml:mi>k</mml:mi><mml:mtext mathvariant="normal">spatial</mml:mtext></mml:msubsup></mml:math></alternatives></inline-formula>
+      <inline-formula><alternatives><tex-math><![CDATA[\eta^{\mathrm{spatial}}_k]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>η</mml:mi><mml:mi>k</mml:mi><mml:mrow><mml:mi mathvariant="normal">s</mml:mi><mml:mi mathvariant="normal">p</mml:mi><mml:mi mathvariant="normal">a</mml:mi><mml:mi mathvariant="normal">t</mml:mi><mml:mi mathvariant="normal">i</mml:mi><mml:mi mathvariant="normal">a</mml:mi><mml:mi mathvariant="normal">l</mml:mi></mml:mrow></mml:msubsup></mml:math></alternatives></inline-formula>
       is specified through its full conditional distributions:</p>
           <p>
             <disp-formula>
               <alternatives>
-                <tex-math><![CDATA[\eta^{\text{spatial}}_{k,i} | \eta^{\text{spatial}}_{k,-i} \sim \mathcal{N}\left(\frac{1}{n_i}\sum_{j \sim i} \eta^{\text{spatial}}_{k,j}, \frac{1}{n_i}\right)]]></tex-math>
+                <tex-math><![CDATA[\eta^{\mathrm{spatial}}_{k,i} | \eta^{\mathrm{spatial}}_{k,-i} \sim \mathcal{N}\left(\frac{1}{n_i}\sum_{j \sim i} \eta^{\mathrm{spatial}}_{k,j}, \frac{1}{n_i}\right)]]></tex-math>
                 <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
                   <mml:mrow>
                     <mml:msubsup>
@@ -484,7 +646,15 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
                         <mml:mo>,</mml:mo>
                         <mml:mi>i</mml:mi>
                       </mml:mrow>
-                      <mml:mtext mathvariant="normal">spatial</mml:mtext>
+                      <mml:mrow>
+                        <mml:mi mathvariant="normal">s</mml:mi>
+                        <mml:mi mathvariant="normal">p</mml:mi>
+                        <mml:mi mathvariant="normal">a</mml:mi>
+                        <mml:mi mathvariant="normal">t</mml:mi>
+                        <mml:mi mathvariant="normal">i</mml:mi>
+                        <mml:mi mathvariant="normal">a</mml:mi>
+                        <mml:mi mathvariant="normal">l</mml:mi>
+                      </mml:mrow>
                     </mml:msubsup>
                     <mml:mo stretchy="false" form="prefix">|</mml:mo>
                     <mml:msubsup>
@@ -495,7 +665,15 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
                         <mml:mi>−</mml:mi>
                         <mml:mi>i</mml:mi>
                       </mml:mrow>
-                      <mml:mtext mathvariant="normal">spatial</mml:mtext>
+                      <mml:mrow>
+                        <mml:mi mathvariant="normal">s</mml:mi>
+                        <mml:mi mathvariant="normal">p</mml:mi>
+                        <mml:mi mathvariant="normal">a</mml:mi>
+                        <mml:mi mathvariant="normal">t</mml:mi>
+                        <mml:mi mathvariant="normal">i</mml:mi>
+                        <mml:mi mathvariant="normal">a</mml:mi>
+                        <mml:mi mathvariant="normal">l</mml:mi>
+                      </mml:mrow>
                     </mml:msubsup>
                     <mml:mo>∼</mml:mo>
                     <mml:mi>𝒩</mml:mi>
@@ -523,7 +701,15 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
                           <mml:mo>,</mml:mo>
                           <mml:mi>j</mml:mi>
                         </mml:mrow>
-                        <mml:mtext mathvariant="normal">spatial</mml:mtext>
+                        <mml:mrow>
+                          <mml:mi mathvariant="normal">s</mml:mi>
+                          <mml:mi mathvariant="normal">p</mml:mi>
+                          <mml:mi mathvariant="normal">a</mml:mi>
+                          <mml:mi mathvariant="normal">t</mml:mi>
+                          <mml:mi mathvariant="normal">i</mml:mi>
+                          <mml:mi mathvariant="normal">a</mml:mi>
+                          <mml:mi mathvariant="normal">l</mml:mi>
+                        </mml:mrow>
                       </mml:msubsup>
                       <mml:mo>,</mml:mo>
                       <mml:mfrac>
@@ -551,7 +737,7 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
           <p>
             <disp-formula>
               <alternatives>
-                <tex-math><![CDATA[p(\eta^{\text{spatial}}_k) \propto \exp\left(-\frac{1}{2}\sum_{i \sim j} (\eta^{\text{spatial}}_{k,i} - \eta^{\text{spatial}}_{k,j})^2\right)]]></tex-math>
+                <tex-math><![CDATA[p(\eta^{\mathrm{spatial}}_k) \propto \exp\left(-\frac{1}{2}\sum_{i \sim j} (\eta^{\mathrm{spatial}}_{k,i} - \eta^{\mathrm{spatial}}_{k,j})^2\right)]]></tex-math>
                 <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
                   <mml:mrow>
                     <mml:mi>p</mml:mi>
@@ -560,7 +746,15 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
                       <mml:msubsup>
                         <mml:mi>η</mml:mi>
                         <mml:mi>k</mml:mi>
-                        <mml:mtext mathvariant="normal">spatial</mml:mtext>
+                        <mml:mrow>
+                          <mml:mi mathvariant="normal">s</mml:mi>
+                          <mml:mi mathvariant="normal">p</mml:mi>
+                          <mml:mi mathvariant="normal">a</mml:mi>
+                          <mml:mi mathvariant="normal">t</mml:mi>
+                          <mml:mi mathvariant="normal">i</mml:mi>
+                          <mml:mi mathvariant="normal">a</mml:mi>
+                          <mml:mi mathvariant="normal">l</mml:mi>
+                        </mml:mrow>
                       </mml:msubsup>
                       <mml:mo stretchy="true" form="postfix">)</mml:mo>
                     </mml:mrow>
@@ -591,7 +785,15 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
                               <mml:mo>,</mml:mo>
                               <mml:mi>i</mml:mi>
                             </mml:mrow>
-                            <mml:mtext mathvariant="normal">spatial</mml:mtext>
+                            <mml:mrow>
+                              <mml:mi mathvariant="normal">s</mml:mi>
+                              <mml:mi mathvariant="normal">p</mml:mi>
+                              <mml:mi mathvariant="normal">a</mml:mi>
+                              <mml:mi mathvariant="normal">t</mml:mi>
+                              <mml:mi mathvariant="normal">i</mml:mi>
+                              <mml:mi mathvariant="normal">a</mml:mi>
+                              <mml:mi mathvariant="normal">l</mml:mi>
+                            </mml:mrow>
                           </mml:msubsup>
                           <mml:mo>−</mml:mo>
                           <mml:msubsup>
@@ -601,7 +803,15 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
                               <mml:mo>,</mml:mo>
                               <mml:mi>j</mml:mi>
                             </mml:mrow>
-                            <mml:mtext mathvariant="normal">spatial</mml:mtext>
+                            <mml:mrow>
+                              <mml:mi mathvariant="normal">s</mml:mi>
+                              <mml:mi mathvariant="normal">p</mml:mi>
+                              <mml:mi mathvariant="normal">a</mml:mi>
+                              <mml:mi mathvariant="normal">t</mml:mi>
+                              <mml:mi mathvariant="normal">i</mml:mi>
+                              <mml:mi mathvariant="normal">a</mml:mi>
+                              <mml:mi mathvariant="normal">l</mml:mi>
+                            </mml:mrow>
                           </mml:msubsup>
                           <mml:mo stretchy="true" form="postfix">)</mml:mo>
                         </mml:mrow>
@@ -615,7 +825,7 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
             </disp-formula>
           </p>
           <p>with an additional soft sum-to-zero constraint implemented via
-      <inline-formula><alternatives><tex-math><![CDATA[\sum_i \eta^{\text{spatial}}_{k,i} \sim \mathcal{N}(0, 0.001p)]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msub><mml:mo>∑</mml:mo><mml:mi>i</mml:mi></mml:msub><mml:msubsup><mml:mi>η</mml:mi><mml:mrow><mml:mi>k</mml:mi><mml:mo>,</mml:mo><mml:mi>i</mml:mi></mml:mrow><mml:mtext mathvariant="normal">spatial</mml:mtext></mml:msubsup><mml:mo>∼</mml:mo><mml:mi>𝒩</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mn>0</mml:mn><mml:mo>,</mml:mo><mml:mn>0.001</mml:mn><mml:mi>p</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula>.</p>
+      <inline-formula><alternatives><tex-math><![CDATA[\sum_i \eta^{\mathrm{spatial}}_{k,i} \sim \mathcal{N}(0, 0.001p)]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:mrow><mml:msub><mml:mo>∑</mml:mo><mml:mi>i</mml:mi></mml:msub><mml:msubsup><mml:mi>η</mml:mi><mml:mrow><mml:mi>k</mml:mi><mml:mo>,</mml:mo><mml:mi>i</mml:mi></mml:mrow><mml:mrow><mml:mi mathvariant="normal">s</mml:mi><mml:mi mathvariant="normal">p</mml:mi><mml:mi mathvariant="normal">a</mml:mi><mml:mi mathvariant="normal">t</mml:mi><mml:mi mathvariant="normal">i</mml:mi><mml:mi mathvariant="normal">a</mml:mi><mml:mi mathvariant="normal">l</mml:mi></mml:mrow></mml:msubsup><mml:mo>∼</mml:mo><mml:mi>𝒩</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mn>0</mml:mn><mml:mo>,</mml:mo><mml:mn>0.001</mml:mn><mml:mi>p</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula>.</p>
         </sec>
         <sec id="observation-model">
           <title>Observation Model</title>
@@ -685,9 +895,9 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
               <alternatives>
                 <tex-math><![CDATA[
       \begin{aligned}
-      \sigma_k &\sim \text{Exponential}(1) \\
-      \rho_k &\sim \text{Beta}(1,1) \\
-      \mu_k &\sim \text{flat}
+      \sigma_k &\sim \mathrm{Exponential}(1) \\
+      \rho_k &\sim \mathrm{Beta}(1,1) \\
+      \mu_k &\sim \mathrm{flat}
       \end{aligned}
       ]]></tex-math>
                 <mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="block">
@@ -701,7 +911,19 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
                       </mml:mtd>
                       <mml:mtd columnalign="left" style="text-align: left">
                         <mml:mo>∼</mml:mo>
-                        <mml:mtext mathvariant="normal">Exponential</mml:mtext>
+                        <mml:mrow>
+                          <mml:mi mathvariant="normal">E</mml:mi>
+                          <mml:mi mathvariant="normal">x</mml:mi>
+                          <mml:mi mathvariant="normal">p</mml:mi>
+                          <mml:mi mathvariant="normal">o</mml:mi>
+                          <mml:mi mathvariant="normal">n</mml:mi>
+                          <mml:mi mathvariant="normal">e</mml:mi>
+                          <mml:mi mathvariant="normal">n</mml:mi>
+                          <mml:mi mathvariant="normal">t</mml:mi>
+                          <mml:mi mathvariant="normal">i</mml:mi>
+                          <mml:mi mathvariant="normal">a</mml:mi>
+                          <mml:mi mathvariant="normal">l</mml:mi>
+                        </mml:mrow>
                         <mml:mrow>
                           <mml:mo stretchy="true" form="prefix">(</mml:mo>
                           <mml:mn>1</mml:mn>
@@ -718,7 +940,12 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
                       </mml:mtd>
                       <mml:mtd columnalign="left" style="text-align: left">
                         <mml:mo>∼</mml:mo>
-                        <mml:mtext mathvariant="normal">Beta</mml:mtext>
+                        <mml:mrow>
+                          <mml:mi mathvariant="normal">B</mml:mi>
+                          <mml:mi mathvariant="normal">e</mml:mi>
+                          <mml:mi mathvariant="normal">t</mml:mi>
+                          <mml:mi mathvariant="normal">a</mml:mi>
+                        </mml:mrow>
                         <mml:mrow>
                           <mml:mo stretchy="true" form="prefix">(</mml:mo>
                           <mml:mn>1</mml:mn>
@@ -737,7 +964,12 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
                       </mml:mtd>
                       <mml:mtd columnalign="left" style="text-align: left">
                         <mml:mo>∼</mml:mo>
-                        <mml:mtext mathvariant="normal">flat</mml:mtext>
+                        <mml:mrow>
+                          <mml:mi mathvariant="normal">f</mml:mi>
+                          <mml:mi mathvariant="normal">l</mml:mi>
+                          <mml:mi mathvariant="normal">a</mml:mi>
+                          <mml:mi mathvariant="normal">t</mml:mi>
+                        </mml:mrow>
                       </mml:mtd>
                     </mml:mtr>
                   </mml:mtable>
@@ -770,8 +1002,8 @@ and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
           </list-item>
           <list-item>
             <p>Decomposition of spatial variation through the posterior
-        distributions of <inline-formula><alternatives><tex-math><![CDATA[\eta^{\text{spatial}}_k]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>η</mml:mi><mml:mi>k</mml:mi><mml:mtext mathvariant="normal">spatial</mml:mtext></mml:msubsup></mml:math></alternatives></inline-formula>
-        and <inline-formula><alternatives><tex-math><![CDATA[\eta^{\text{random}}_k]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>η</mml:mi><mml:mi>k</mml:mi><mml:mtext mathvariant="normal">random</mml:mtext></mml:msubsup></mml:math></alternatives></inline-formula></p>
+        distributions of <inline-formula><alternatives><tex-math><![CDATA[\eta^{\mathrm{spatial}}_k]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>η</mml:mi><mml:mi>k</mml:mi><mml:mrow><mml:mi mathvariant="normal">s</mml:mi><mml:mi mathvariant="normal">p</mml:mi><mml:mi mathvariant="normal">a</mml:mi><mml:mi mathvariant="normal">t</mml:mi><mml:mi mathvariant="normal">i</mml:mi><mml:mi mathvariant="normal">a</mml:mi><mml:mi mathvariant="normal">l</mml:mi></mml:mrow></mml:msubsup></mml:math></alternatives></inline-formula>
+        and <inline-formula><alternatives><tex-math><![CDATA[\eta^{\mathrm{random}}_k]]></tex-math><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML" display="inline"><mml:msubsup><mml:mi>η</mml:mi><mml:mi>k</mml:mi><mml:mrow><mml:mi mathvariant="normal">r</mml:mi><mml:mi mathvariant="normal">a</mml:mi><mml:mi mathvariant="normal">n</mml:mi><mml:mi mathvariant="normal">d</mml:mi><mml:mi mathvariant="normal">o</mml:mi><mml:mi mathvariant="normal">m</mml:mi></mml:mrow></mml:msubsup></mml:math></alternatives></inline-formula></p>
           </list-item>
         </list>
       </sec>

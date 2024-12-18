@@ -129,7 +129,13 @@ window.Quarto = {
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a>
   <ul class="collapse">
   <li><a href="#package-overview" id="toc-package-overview" class="nav-link" data-scroll-target="#package-overview">Package Overview</a></li>
-  <li><a href="#algorithm-description" id="toc-algorithm-description" class="nav-link" data-scroll-target="#algorithm-description">Algorithm Description</a></li>
+  <li><a href="#algorithm-description" id="toc-algorithm-description" class="nav-link" data-scroll-target="#algorithm-description">Algorithm Description</a>
+  <ul class="collapse">
+  <li><a href="#overview" id="toc-overview" class="nav-link" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#inference-steps" id="toc-inference-steps" class="nav-link" data-scroll-target="#inference-steps">Inference Steps</a></li>
+  <li><a href="#key-features" id="toc-key-features" class="nav-link" data-scroll-target="#key-features">Key Features</a></li>
+  <li><a href="#implementation" id="toc-implementation" class="nav-link" data-scroll-target="#implementation">Implementation</a></li>
+  </ul></li>
   <li><a href="#code-structure" id="toc-code-structure" class="nav-link" data-scroll-target="#code-structure">Code Structure</a></li>
   </ul></li>
   <li><a href="#max-step" id="toc-max-step" class="nav-link" data-scroll-target="#max-step">Max Step</a>
@@ -177,12 +183,76 @@ window.Quarto = {
 </section>
 <section id="algorithm-description" class="level2">
 <h2 class="anchored" data-anchor-id="algorithm-description">Algorithm Description</h2>
-<p>The Max-and-Smooth algorithm, as applied to spatial GEV models, consists of two main steps:</p>
+<p>The Max-and-Smooth algorithm provides a computationally efficient approach to Bayesian inference for spatial extreme value models by decomposing the inference into two steps. This approach is particularly well-suited for spatial GEV models where we have both temporal replicates and spatial dependence.</p>
+<section id="overview" class="level3">
+<h3 class="anchored" data-anchor-id="overview">Overview</h3>
+<p>Let <span class="math inline">\(Y = \{y_{it}\}\)</span> be observations at locations <span class="math inline">\(i=1,\ldots,p\)</span> and times <span class="math inline">\(t=1,\ldots,n\)</span>. We model these through GEV marginal distributions with spatially varying parameters and a Gaussian copula dependence structure:</p>
 <ol type="1">
-<li><strong>Max Step</strong>: Maximum likelihood estimation of GEV parameters at each spatial location using C++</li>
-<li><strong>Smooth Step</strong>: Spatial smoothing of the maximum likelihood estimates using a BYM2 model implemented in Stan</li>
+<li><p><strong>Marginal Distribution</strong>: At each location <span class="math inline">\(i\)</span>: <span class="math display">\[Y_{it} \sim \mathrm{GEV}(\mu_i, \sigma_i, \xi_i)\]</span></p></li>
+<li><p><strong>Dependence Structure</strong>: Transform to Gaussian margins via: <span class="math display">\[Z_{it} = \Phi^{-1}(F_{\mathrm{GEV}}(Y_{it}|\mu_i,\sigma_i,\xi_i))\]</span> where the spatial dependence is captured through a Matérn-like precision structure: <span class="math display">\[Z_t \sim \mathcal{N}(0, Q^{-1}), \quad Q = (Q_{\rho_1} \otimes I_{n_2} + I_{n_1} \otimes Q_{\rho_2})^{\nu+1}\]</span></p></li>
 </ol>
-<p>The algorithm treats the ML estimates as sufficient statistics for a latent Gaussian field, providing a fast approximation to full Bayesian inference for spatial extreme value models.</p>
+</section>
+<section id="inference-steps" class="level3">
+<h3 class="anchored" data-anchor-id="inference-steps">Inference Steps</h3>
+<p>The algorithm proceeds in two main steps:</p>
+<ol type="1">
+<li><strong>Max Step</strong>: Joint maximum likelihood estimation
+<ul>
+<li>Input: Raw observations <span class="math inline">\(Y\)</span></li>
+<li>Process:
+<ol type="a">
+<li>Transform parameters: <span class="math inline">\((\psi,\tau,\phi) = (\log\mu, \log\sigma-\log\mu, \text{logit}(\xi))\)</span></li>
+<li>Maximize joint log-likelihood combining GEV margins and Gaussian copula</li>
+<li>Compute Hessian at MLE for uncertainty quantification</li>
+</ol></li>
+<li>Output:
+<ul>
+<li>MLEs <span class="math inline">\(\hat{\eta} = (\hat{\psi}, \hat{\tau}, \hat{\phi})\)</span></li>
+<li>Precision matrix <span class="math inline">\(Q_{\eta y}\)</span> (negative Hessian)</li>
+</ul></li>
+</ul></li>
+<li><strong>Smooth Step</strong>: Spatial smoothing via BYM2 model
+<ul>
+<li>Input: MLEs <span class="math inline">\(\hat{\eta}\)</span> and precision <span class="math inline">\(Q_{\eta y}\)</span> from Max step</li>
+<li>Process: For each parameter type <span class="math inline">\(k \in \{\psi, \tau, \phi\}\)</span>:
+<ol type="a">
+<li>Decompose into spatial and random components: <span class="math display">\[\eta_k = \mu_k\mathbf{1} + \sigma_k(\sqrt{\rho_k/c}\eta^{\mathrm{spatial}}_k + \sqrt{1-\rho_k}\eta^{\mathrm{random}}_k)\]</span></li>
+<li>Apply ICAR prior to spatial component</li>
+<li>Sample posterior using MCMC</li>
+</ol></li>
+<li>Output: Posterior samples of smoothed parameters</li>
+</ul></li>
+</ol>
+</section>
+<section id="key-features" class="level3">
+<h3 class="anchored" data-anchor-id="key-features">Key Features</h3>
+<p>The algorithm offers several computational advantages:</p>
+<ol type="1">
+<li><strong>Parallel Processing</strong>: The Max step can be parallelized across locations</li>
+<li><strong>Dimensionality Reduction</strong>: The Smooth step works with summary statistics (MLEs) rather than raw data</li>
+<li><strong>Efficient Sampling</strong>: Uses Stan’s NUTS sampler with sparse matrix operations</li>
+<li><strong>Uncertainty Propagation</strong>: Incorporates parameter uncertainty through <span class="math inline">\(Q_{\eta y}\)</span></li>
+</ol>
+</section>
+<section id="implementation" class="level3">
+<h3 class="anchored" data-anchor-id="implementation">Implementation</h3>
+<p>The method is implemented using:</p>
+<ol type="1">
+<li>C++ with automatic differentiation for the Max step:
+<ul>
+<li>Efficient computation of GEV density and transformations</li>
+<li>Sparse matrix operations for Gaussian copula likelihood</li>
+<li>L-BFGS optimization with analytical gradients</li>
+</ul></li>
+<li>Stan for the Smooth step:
+<ul>
+<li>BYM2 spatial model with PC priors</li>
+<li>Custom functions for sparse precision matrices</li>
+<li>Efficient HMC sampling</li>
+</ul></li>
+</ol>
+<p>This two-step approach provides a computationally tractable alternative to full MCMC for spatial extreme value models while maintaining proper uncertainty quantification through the entire inference pipeline.</p>
+</section>
 </section>
 <section id="code-structure" class="level2">
 <h2 class="anchored" data-anchor-id="code-structure">Code Structure</h2>
@@ -206,7 +276,7 @@ window.Quarto = {
 <p>The model combines GEV marginal distributions with a Gaussian copula:</p>
 <ol type="1">
 <li><p><strong>Marginal GEV distributions</strong>: At each location <span class="math inline">\(j\)</span>, observations follow a GEV distribution: <span class="math display">\[Y_{ij} \sim \text{GEV}(\mu_j, \sigma_j, \xi_j)\]</span></p></li>
-<li><p><strong>Spatial dependence</strong>: The dependence structure is captured by transforming the observations to standard normal using the probability integral transform: <span class="math display">\[Z_{ij} = \Phi^{-1}(F_{\text{GEV}}(Y_{ij}|\mu_j,\sigma_j,\xi_j))\]</span> where <span class="math inline">\(F_{\text{GEV}}\)</span> is the GEV CDF and <span class="math inline">\(\Phi^{-1}\)</span> is the standard normal quantile function.</p></li>
+<li><p><strong>Spatial dependence</strong>: The dependence structure is captured by transforming the observations to standard normal using the prowbability integral transform: <span class="math display">\[Z_{ij} = \Phi^{-1}(F_{\text{GEV}}(Y_{ij}|\mu_j,\sigma_j,\xi_j))\]</span> where <span class="math inline">\(F_{\text{GEV}}\)</span> is the GEV CDF and <span class="math inline">\(\Phi^{-1}\)</span> is the standard normal quantile function.</p></li>
 <li><p><strong>Matérn-like precision structure</strong>: The transformed observations follow a multivariate normal distribution with precision matrix: <span class="math display">\[Q = (Q_{\rho_1} \otimes I_{n_2} + I_{n_1} \otimes Q_{\rho_2})^{\nu+1}\]</span> where:</p>
 <ul>
 <li><span class="math inline">\(Q_{\rho}\)</span> is the precision matrix of a standardized AR(1) process</li>
@@ -248,24 +318,24 @@ window.Quarto = {
 <section id="spatial-random-effects" class="level3">
 <h3 class="anchored" data-anchor-id="spatial-random-effects">Spatial Random Effects</h3>
 <p>For each parameter type <span class="math inline">\(k \in \{\psi, \tau, \phi\}\)</span>, we decompose the spatial variation into structured and unstructured components following the BYM2 parameterization:</p>
-<p><span class="math display">\[\eta_k = \mu_k\mathbf{1} + \sigma_k\left(\sqrt{\frac{\rho_k}{c}}\eta^{\text{spatial}}_k + \sqrt{1-\rho_k}\eta^{\text{random}}_k\right)\]</span></p>
+<p><span class="math display">\[\eta_k = \mu_k\mathbf{1} + \sigma_k\left(\sqrt{\frac{\rho_k}{c}}\eta^{\mathrm{spatial}}_k + \sqrt{1-\rho_k}\eta^{\mathrm{random}}_k\right)\]</span></p>
 <p>where:</p>
 <ul>
 <li><span class="math inline">\(\mu_k\)</span> is the overall mean</li>
 <li><span class="math inline">\(\sigma_k &gt; 0\)</span> is the marginal standard deviation</li>
 <li><span class="math inline">\(\rho_k \in [0,1]\)</span> is the mixing parameter controlling the balance between spatial and unstructured variation</li>
 <li><span class="math inline">\(c\)</span> is a scaling factor that ensures the marginal variance of the spatial component is approximately 1</li>
-<li><span class="math inline">\(\eta^{\text{spatial}}_k\)</span> follows an intrinsic conditional autoregressive (ICAR) prior</li>
-<li><span class="math inline">\(\eta^{\text{random}}_k \sim \mathcal{N}(0, I)\)</span> represents unstructured random effects</li>
+<li><span class="math inline">\(\eta^{\mathrm{spatial}}_k\)</span> follows an intrinsic conditional autoregressive (ICAR) prior</li>
+<li><span class="math inline">\(\eta^{\mathrm{random}}_k \sim \mathcal{N}(0, I)\)</span> represents unstructured random effects</li>
 </ul>
 </section>
 <section id="icar-prior-specification" class="level3">
 <h3 class="anchored" data-anchor-id="icar-prior-specification">ICAR Prior Specification</h3>
-<p>The ICAR prior for the spatial component <span class="math inline">\(\eta^{\text{spatial}}_k\)</span> is specified through its full conditional distributions:</p>
-<p><span class="math display">\[\eta^{\text{spatial}}_{k,i} | \eta^{\text{spatial}}_{k,-i} \sim \mathcal{N}\left(\frac{1}{n_i}\sum_{j \sim i} \eta^{\text{spatial}}_{k,j}, \frac{1}{n_i}\right)\]</span></p>
+<p>The ICAR prior for the spatial component <span class="math inline">\(\eta^{\mathrm{spatial}}_k\)</span> is specified through its full conditional distributions:</p>
+<p><span class="math display">\[\eta^{\mathrm{spatial}}_{k,i} | \eta^{\mathrm{spatial}}_{k,-i} \sim \mathcal{N}\left(\frac{1}{n_i}\sum_{j \sim i} \eta^{\mathrm{spatial}}_{k,j}, \frac{1}{n_i}\right)\]</span></p>
 <p>where <span class="math inline">\(j \sim i\)</span> indicates that locations <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> are neighbors, and <span class="math inline">\(n_i\)</span> is the number of neighbors for location <span class="math inline">\(i\)</span>. This is implemented efficiently in Stan through the sum of squared differences form:</p>
-<p><span class="math display">\[p(\eta^{\text{spatial}}_k) \propto \exp\left(-\frac{1}{2}\sum_{i \sim j} (\eta^{\text{spatial}}_{k,i} - \eta^{\text{spatial}}_{k,j})^2\right)\]</span></p>
-<p>with an additional soft sum-to-zero constraint implemented via <span class="math inline">\(\sum_i \eta^{\text{spatial}}_{k,i} \sim \mathcal{N}(0, 0.001p)\)</span>.</p>
+<p><span class="math display">\[p(\eta^{\mathrm{spatial}}_k) \propto \exp\left(-\frac{1}{2}\sum_{i \sim j} (\eta^{\mathrm{spatial}}_{k,i} - \eta^{\mathrm{spatial}}_{k,j})^2\right)\]</span></p>
+<p>with an additional soft sum-to-zero constraint implemented via <span class="math inline">\(\sum_i \eta^{\mathrm{spatial}}_{k,i} \sim \mathcal{N}(0, 0.001p)\)</span>.</p>
 </section>
 <section id="observation-model" class="level3">
 <h3 class="anchored" data-anchor-id="observation-model">Observation Model</h3>
@@ -283,9 +353,9 @@ window.Quarto = {
 <p>We specify weakly informative priors:</p>
 <p><span class="math display">\[
 \begin{aligned}
-\sigma_k &amp;\sim \text{Exponential}(1) \\
-\rho_k &amp;\sim \text{Beta}(1,1) \\
-\mu_k &amp;\sim \text{flat}
+\sigma_k &amp;\sim \mathrm{Exponential}(1) \\
+\rho_k &amp;\sim \mathrm{Beta}(1,1) \\
+\mu_k &amp;\sim \mathrm{flat}
 \end{aligned}
 \]</span></p>
 <p>for each parameter type <span class="math inline">\(k\)</span>. The exponential prior on <span class="math inline">\(\sigma_k\)</span> provides weak regularization while ensuring positivity, while the uniform Beta prior on <span class="math inline">\(\rho_k\)</span> allows the data to determine the balance between spatial and unstructured variation.</p>
@@ -297,7 +367,7 @@ window.Quarto = {
 <ol type="1">
 <li>Posterior samples of the latent field <span class="math inline">\(\eta\)</span></li>
 <li>Uncertainty quantification through the posterior distributions of <span class="math inline">\(\mu_k\)</span>, <span class="math inline">\(\sigma_k\)</span>, and <span class="math inline">\(\rho_k\)</span></li>
-<li>Decomposition of spatial variation through the posterior distributions of <span class="math inline">\(\eta^{\text{spatial}}_k\)</span> and <span class="math inline">\(\eta^{\text{random}}_k\)</span></li>
+<li>Decomposition of spatial variation through the posterior distributions of <span class="math inline">\(\eta^{\mathrm{spatial}}_k\)</span> and <span class="math inline">\(\eta^{\mathrm{random}}_k\)</span></li>
 </ol>
 </section>
 </section>
