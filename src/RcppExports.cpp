@@ -12,13 +12,17 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // fit_gev
-Rcpp::List fit_gev(Eigen::MatrixXd& data);
-RcppExport SEXP _maxandsmooth_fit_gev(SEXP dataSEXP) {
+Rcpp::List fit_gev(Eigen::MatrixXd& data, Eigen::VectorXd& index, Eigen::VectorXd& n_values, Eigen::VectorXd& values, double log_det);
+RcppExport SEXP _maxandsmooth_fit_gev(SEXP dataSEXP, SEXP indexSEXP, SEXP n_valuesSEXP, SEXP valuesSEXP, SEXP log_detSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type data(dataSEXP);
-    rcpp_result_gen = Rcpp::wrap(fit_gev(data));
+    Rcpp::traits::input_parameter< Eigen::VectorXd& >::type index(indexSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXd& >::type n_values(n_valuesSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXd& >::type values(valuesSEXP);
+    Rcpp::traits::input_parameter< double >::type log_det(log_detSEXP);
+    rcpp_result_gen = Rcpp::wrap(fit_gev(data, index, n_values, values, log_det));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -36,7 +40,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_maxandsmooth_fit_gev", (DL_FUNC) &_maxandsmooth_fit_gev, 1},
+    {"_maxandsmooth_fit_gev", (DL_FUNC) &_maxandsmooth_fit_gev, 5},
     {"_maxandsmooth_ms_max", (DL_FUNC) &_maxandsmooth_ms_max, 2},
     {NULL, NULL, 0}
 };
